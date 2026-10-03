@@ -11,10 +11,11 @@ export function usePWAInstall() {
   const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
-    // Detect standalone mode (already installed)
+    // Detect standalone mode (already installed on device)
     const isStandalone =
       window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+      (window.navigator as unknown as { standalone?: boolean }).standalone === true ||
+      document.referrer.includes('android-app://');
     setIsInstalled(isStandalone);
 
     // Detect iOS devices
@@ -23,6 +24,7 @@ export function usePWAInstall() {
     setIsIOS(isIOSDevice);
 
     const handleBeforeInstallPrompt = (e: Event) => {
+      // Prevent browser default mini-infobar
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
     };
@@ -43,12 +45,16 @@ export function usePWAInstall() {
 
   const install = async () => {
     if (!deferredPrompt) return false;
-    await deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      setIsInstalled(true);
-      setDeferredPrompt(null);
-      return true;
+    try {
+      await deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setIsInstalled(true);
+        setDeferredPrompt(null);
+        return true;
+      }
+    } catch (err) {
+      console.error('Error triggering PWA install prompt:', err);
     }
     return false;
   };
