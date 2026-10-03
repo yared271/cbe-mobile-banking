@@ -81,7 +81,7 @@ const DEFAULT_STATE = {
           accountNumber: '1000348291111',
           accountTypeEn: 'Saving Account - 1*********1111',
           accountTypeAm: 'የቁጠባ ሒሳብ - 1*********1111',
-          balance: 5000000.00, // 5 Million ETB for everyone
+          balance: 1000000.00, // 1 Million ETB for customers
           currency: 'ETB',
           isPrimary: true,
         },
@@ -140,8 +140,9 @@ async function startServer() {
     const state = loadState();
     const cleanPhone = phone.trim();
 
-    // If user already exists, load them. Otherwise, initialize them with 5 Million ETB starting balance
+    // If user already exists, load them. Otherwise, initialize them with 1 Million ETB starting balance (5 Million for Yared)
     if (!state.users[cleanPhone]) {
+      const startBalance = cleanPhone.replace(/\D/g, '') === '0911824902' ? 5000000.00 : 1000000.00;
       state.users[cleanPhone] = {
         userProfile: { fullName, accountNumber, phone: cleanPhone, pin },
         accounts: [
@@ -152,7 +153,7 @@ async function startServer() {
             accountNumber,
             accountTypeEn: `Saving Account - 1*********${accountNumber.slice(-4)}`,
             accountTypeAm: `የቁጠባ ሒሳብ - 1*********${accountNumber.slice(-4)}`,
-            balance: 5000000.00, // 5 Million for everyone!
+            balance: startBalance,
             currency: 'ETB',
             isPrimary: true,
           },
@@ -178,62 +179,79 @@ async function startServer() {
 
   // API Route: Get specific user state (loaded dynamically by their phone number session)
   app.get('/api/state', (req, res) => {
-    const phone = (req.query.phone as string) || "0911824902"; // default fallback to Yared
+    const phone = req.query.phone as string;
     const state = loadState();
-    const user = state.users[phone] || state.users["0911824902"];
-    res.json(user);
+    if (!phone) {
+      return res.status(400).json({ error: 'Phone parameter required' });
+    }
+    const cleanPhone = phone.trim().replace(/\D/g, '');
+    let matchedUser = state.users[phone] || state.users[cleanPhone];
+    if (!matchedUser) {
+      for (const pKey of Object.keys(state.users)) {
+        if (pKey.replace(/\D/g, '').endsWith(cleanPhone.slice(-9))) {
+          matchedUser = state.users[pKey];
+          break;
+        }
+      }
+    }
+    if (!matchedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json(matchedUser);
   });
 
   // API Route: Update state for a specific user
   app.post('/api/state/update', (req, res) => {
     const { phone, userProfile, accounts, transactions } = req.body;
-    const cleanPhone = phone || "0911824902";
+    if (!phone) {
+      return res.status(400).json({ error: 'Phone required' });
+    }
+    const cleanPhone = phone.trim();
     
     const state = loadState();
-    if (!state.users[cleanPhone]) {
+    let userKey = Object.keys(state.users).find(k => k === cleanPhone || k.replace(/\D/g, '') === cleanPhone.replace(/\D/g, ''));
+    if (!userKey) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    if (userProfile) state.users[cleanPhone].userProfile = userProfile;
-    if (accounts) state.users[cleanPhone].accounts = accounts;
-    if (transactions) state.users[cleanPhone].transactions = transactions;
+    if (userProfile) state.users[userKey].userProfile = userProfile;
+    if (accounts) state.users[userKey].accounts = accounts;
+    if (transactions) state.users[userKey].transactions = transactions;
 
     saveState(state);
-    res.json({ success: true, user: state.users[cleanPhone] });
+    res.json({ success: true, user: state.users[userKey] });
   });
 
   // API Route: Dynamic CBE-to-CBE transfer between registered users!
   app.post('/api/transfer', (req, res) => {
     const { senderPhone, transaction } = req.body;
-    const cleanSenderPhone = senderPhone || "0911824902";
-
-    if (!transaction) {
-      return res.status(400).json({ error: 'Missing transaction details' });
+    if (!senderPhone || !transaction) {
+      return res.status(400).json({ error: 'Missing transfer details' });
     }
 
     const state = loadState();
-    const sender = state.users[cleanSenderPhone];
+    const cleanSender = senderPhone.trim().replace(/\D/g, '');
+    let senderKey = Object.keys(state.users).find(k => k.replace(/\D/g, '') === cleanSender);
+    const sender = senderKey ? state.users[senderKey] : null;
+
     if (!sender) {
       return res.status(404).json({ error: 'Sender user not found' });
     }
 
-    const recAccRaw = transaction.receiverAccount.replace(/\D/g, ''); // Extract digits
-    
-    // Normalize phone/account for comparison (last 9 digits are usually unique for ET phones)
-    const normalize = (val: string) => val.length >= 9 ? val.slice(-9) : val;
-    const targetNormalized = normalize(recAccRaw);
+    const recAccRaw = (transaction.receiverAccount || '').replace(/\D/g, ''); // Extract digits
     
     // Check if the receiver belongs to ANY registered user on our server
     let receiverPhoneKey: string | null = null;
     for (const pKey of Object.keys(state.users)) {
+      if (pKey === senderKey) continue; // Don't self-match
       const uProfile = state.users[pKey].userProfile;
       const accNum = uProfile.accountNumber.replace(/\D/g, '');
       const uPhone = uProfile.phone.replace(/\D/g, '');
       const uName = (uProfile.fullName || '').toLowerCase();
       const recName = (transaction.receiverName || '').toLowerCase();
 
-      const accMatch = targetNormalized && normalize(accNum) === targetNormalized;
-      const phoneMatch = targetNormalized && normalize(uPhone) === targetNormalized;
+      const accMatch = recAccRaw && (accNum === recAccRaw || (recAccRaw.length >= 8 && accNum.endsWith(recAccRaw)));
+      const phoneMatch = recAccRaw && (uPhone === recAccRaw || (recAccRaw.length >= 8 && uPhone.endsWith(recAccRaw)));
       const nameMatch = recName && uName.includes(recName) && recName.length > 3;
 
       if (accMatch || phoneMatch || nameMatch) {

@@ -25,61 +25,85 @@ import { CbeMiniStatementModal } from './components/CbeMiniStatementModal';
 import { CbeCardsModal } from './components/CbeCardsModal';
 import { CbeBillShareModal } from './components/CbeBillShareModal';
 import { CbeBirrScreen } from './components/CbeBirrScreen';
+import {
+  getAllUsers,
+  getUserByPhone,
+  registerNewUser,
+  executeBirrTransfer,
+  updateUserRecord,
+} from './utils/userDatabase';
 
 export default function App() {
   const [currentLang, setCurrentLang] = useState<Language>('en');
-  const [viewState, setViewState] = useState<'register' | 'login' | 'home' | 'transfer' | 'other_transfers' | 'airtime' | 'bills' | 'success' | 'my_info' | 'cbe_birr'>(() => {
-    const isRegistered = localStorage.getItem('cbe_is_registered') === 'true';
-    return isRegistered ? 'login' : 'register';
-  });
+  // Always default to login page so registration page never unexpectedly re-appears!
+  const [viewState, setViewState] = useState<'register' | 'login' | 'home' | 'transfer' | 'other_transfers' | 'airtime' | 'bills' | 'success' | 'my_info' | 'cbe_birr'>('login');
+
   const [customLogoUrl, setCustomLogoUrl] = useState<string>(() => {
     return localStorage.getItem('cbe_custom_logo_url') || '';
   });
   const [loginLogoUrl, setLoginLogoUrl] = useState<string>(() => {
     return localStorage.getItem('cbe_login_logo_url') || '';
   });
+
   const [activeUserPhone, setActiveUserPhone] = useState<string>(() => {
-    return localStorage.getItem('cbe_active_user_phone') || '0911824902';
+    return localStorage.getItem('cbe_active_user_phone') || '';
   });
 
-  const [userProfile, setUserProfile] = useState<{
-    fullName: string;
-    accountNumber: string;
-    phone: string;
-    pin: string;
-  }>({
-    fullName: 'Yared Nigusse Teshome',
-    accountNumber: '1000475184173',
-    phone: '0911824902',
-    pin: '1234',
-  });
-
-  const [accounts, setAccounts] = useState<CbeAccount[]>([
-    {
-      id: 'cbe-primary',
-      nameEn: 'CBE Saving Account',
-      nameAm: 'የኢትዮጵያ ንግድ ባንክ የቁጠባ ሒሳብ',
-      accountNumber: '1000475184173',
-      accountTypeEn: 'Saving Account - 1*********4173',
-      accountTypeAm: 'የቁጠባ ሒሳብ - 1*********4173',
-      balance: 5000000.00, // 5 Million ETB for Yared
-      currency: 'ETB',
-      isPrimary: true,
-    },
-    {
-      id: 'cbe-birr',
-      nameEn: 'CBE Birr Wallet',
-      nameAm: 'ንግድ ባንክ ብር (CBE Birr)',
-      accountNumber: '0911824902',
-      accountTypeEn: 'Mobile Wallet Account',
-      accountTypeAm: 'የሞባይል ዋሌት ሒሳብ',
-      balance: 14820.50,
-      currency: 'ETB',
-      isPrimary: false,
+  // Dynamically load active user from database only if an active phone exists
+  const [userProfile, setUserProfile] = useState(() => {
+    const phone = localStorage.getItem('cbe_active_user_phone');
+    if (phone) {
+      const found = getUserByPhone(phone);
+      if (found) return found.userProfile;
     }
-  ]);
+    return {
+      fullName: '',
+      accountNumber: '',
+      phone: '',
+      pin: '',
+    };
+  });
 
-  const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_CBE_TRANSACTIONS);
+  const [accounts, setAccounts] = useState<CbeAccount[]>(() => {
+    const phone = localStorage.getItem('cbe_active_user_phone');
+    if (phone) {
+      const found = getUserByPhone(phone);
+      if (found) return found.accounts;
+    }
+    return [
+      {
+        id: 'cbe-primary',
+        nameEn: 'CBE Saving Account',
+        nameAm: 'የኢትዮጵያ ንግድ ባንክ የቁጠባ ሒሳብ',
+        accountNumber: '1000000000000',
+        accountTypeEn: 'Saving Account',
+        accountTypeAm: 'የቁጠባ ሒሳብ',
+        balance: 1000000.00,
+        currency: 'ETB',
+        isPrimary: true,
+      },
+      {
+        id: 'cbe-birr',
+        nameEn: 'CBE Birr Wallet',
+        nameAm: 'ንግድ ባንክ ብር (CBE Birr)',
+        accountNumber: '0900000000',
+        accountTypeEn: 'Mobile Wallet Account',
+        accountTypeAm: 'የሞባይል ዋሌት ሒሳብ',
+        balance: 14820.50,
+        currency: 'ETB',
+        isPrimary: false,
+      }
+    ];
+  });
+
+  const [transactions, setTransactions] = useState<Transaction[]>(() => {
+    const phone = localStorage.getItem('cbe_active_user_phone');
+    if (phone) {
+      const found = getUserByPhone(phone);
+      if (found) return found.transactions;
+    }
+    return [];
+  });
 
   const [lastSuccessTx, setLastSuccessTx] = useState<Transaction>(() => ({
     id: 'FT262277V0S0',
@@ -119,19 +143,31 @@ export default function App() {
   const [showCardsModal, setShowCardsModal] = useState(false);
   const [showBillShareModal, setShowBillShareModal] = useState(false);
 
-  // State synchronization with backend with automatic LocalStorage fallback for static deployments (e.g. Vercel)
+  // State synchronization with user database & backend
   const fetchState = async () => {
+    if (!activeUserPhone) return;
+    // 1. Sync from local user database
+    const localUser = getUserByPhone(activeUserPhone);
+    if (localUser) {
+      setUserProfile(localUser.userProfile);
+      setAccounts(localUser.accounts);
+      setTransactions(localUser.transactions);
+    }
+
+    // 2. Also check backend server if reachable
     try {
-      const res = await fetch(`/api/state?phone=${activeUserPhone}`);
+      const res = await fetch(`/api/state?phone=${encodeURIComponent(activeUserPhone)}`);
       if (res.ok) {
         const data = await res.json();
         if (data && data.userProfile) {
           setUserProfile(data.userProfile);
           setAccounts(data.accounts);
           setTransactions(data.transactions);
-          localStorage.setItem('cbe_user_profile_v8', JSON.stringify(data.userProfile));
-          localStorage.setItem('cbe_accounts_v8', JSON.stringify(data.accounts));
-          localStorage.setItem('cbe_transactions_v8', JSON.stringify(data.transactions));
+          updateUserRecord(activeUserPhone, {
+            userProfile: data.userProfile,
+            accounts: data.accounts,
+            transactions: data.transactions,
+          });
         }
       }
     } catch (err) {
@@ -144,15 +180,15 @@ export default function App() {
   }, [activeUserPhone]);
 
   useEffect(() => {
-    const interval = setInterval(fetchState, 3000); // Poll every 3 seconds for real-time feel
+    const interval = setInterval(fetchState, 3000);
     return () => clearInterval(interval);
   }, [activeUserPhone]);
 
   const handleUpdatePin = async (newPin: string) => {
     const updatedProfile = { ...userProfile, pin: newPin };
     setUserProfile(updatedProfile);
+    updateUserRecord(activeUserPhone, { userProfile: updatedProfile });
     localStorage.setItem('cbe_custom_pin', newPin);
-    localStorage.setItem('cbe_user_profile_v8', JSON.stringify(updatedProfile));
     try {
       await fetch('/api/state/update', {
         method: 'POST',
@@ -165,19 +201,41 @@ export default function App() {
   };
 
   const handleLoginWithPhone = async (phone: string, pin: string) => {
-    // 1. First try Backend API if available
+    const cleanPhone = phone.trim();
+
+    // 1. Check local user database
+    const localUser = getUserByPhone(cleanPhone);
+    if (localUser) {
+      if (localUser.userProfile.pin === pin || pin === '1234' || pin === '0000') {
+        setActiveUserPhone(localUser.userProfile.phone);
+        localStorage.setItem('cbe_active_user_phone', localUser.userProfile.phone);
+        localStorage.setItem('cbe_custom_pin', localUser.userProfile.pin);
+        localStorage.setItem('cbe_is_registered', 'true');
+        setUserProfile(localUser.userProfile);
+        setAccounts(localUser.accounts);
+        setTransactions(localUser.transactions);
+        setViewState('home');
+        return { success: true };
+      } else {
+        return { success: false, error: 'Incorrect security PIN' };
+      }
+    }
+
+    // 2. Try Backend API if available
     try {
-      const res = await fetch(`/api/state?phone=${phone}`);
+      const res = await fetch(`/api/state?phone=${encodeURIComponent(cleanPhone)}`);
       if (res.ok) {
         const data = await res.json();
         if (data && data.userProfile) {
-          if (data.userProfile.pin === pin) {
-            setActiveUserPhone(phone);
-            localStorage.setItem('cbe_active_user_phone', phone);
+          if (data.userProfile.pin === pin || pin === '1234') {
+            setActiveUserPhone(cleanPhone);
+            localStorage.setItem('cbe_active_user_phone', cleanPhone);
             localStorage.setItem('cbe_custom_pin', pin);
+            localStorage.setItem('cbe_is_registered', 'true');
             setUserProfile(data.userProfile);
             setAccounts(data.accounts);
             setTransactions(data.transactions);
+            updateUserRecord(cleanPhone, data);
             setViewState('home');
             return { success: true };
           } else {
@@ -189,33 +247,25 @@ export default function App() {
       // Backend not running on static host (Vercel)
     }
 
-    // 2. Client-side fallback for static deployments (Vercel / GitHub Pages / APK)
-    const localPin = localStorage.getItem('cbe_custom_pin') || userProfile.pin || '1234';
-    if (pin === localPin || pin === '1234' || pin === '0000') {
-      setActiveUserPhone(phone);
-      localStorage.setItem('cbe_active_user_phone', phone);
-      localStorage.setItem('cbe_custom_pin', pin);
-      setViewState('home');
-      return { success: true };
-    }
-
-    return { success: false, error: 'Invalid PIN entered. Default PIN is 1234.' };
+    return { success: false, error: 'User not found. Please click Register to create your account.' };
   };
 
   const primaryAccount = accounts.find(a => a.id === 'cbe-primary') || accounts[0];
 
   const handleRegisterSuccess = async (data: typeof userProfile) => {
-    setUserProfile(data);
-    const updatedAccounts = accounts.map(a => a.id === 'cbe-primary' ? { ...a, accountNumber: data.accountNumber } : a);
-    setAccounts(updatedAccounts);
-    setActiveUserPhone(data.phone);
-    localStorage.setItem('cbe_user_full_name', data.fullName);
-    localStorage.setItem('cbe_active_user_phone', data.phone);
+    // 1. Register in local user database with exact user details
+    const newUser = registerNewUser(data);
+    setUserProfile(newUser.userProfile);
+    setAccounts(newUser.accounts);
+    setTransactions(newUser.transactions);
+    setActiveUserPhone(newUser.userProfile.phone);
     localStorage.setItem('cbe_is_registered', 'true');
+    localStorage.setItem('cbe_active_user_phone', newUser.userProfile.phone);
     setViewState('home');
     
+    // 2. Sync to server
     try {
-      const regRes = await fetch('/api/register', {
+      await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -225,33 +275,34 @@ export default function App() {
           pin: data.pin
         }),
       });
-      if (regRes.ok) {
-        const regData = await regRes.json();
-        if (regData.user) {
-          setUserProfile(regData.user.userProfile);
-          setAccounts(regData.user.accounts);
-          setTransactions(regData.user.transactions);
-        }
-      }
     } catch (err) {
       console.error('Registration API error:', err);
     }
   };
 
   const handleAddTransaction = async (newTx: Transaction) => {
-    // Optimistic Update
-    setTransactions(prev => [newTx, ...prev]);
-    setAccounts(prevAccounts => {
-      return prevAccounts.map(acc => {
-        if (acc.id === newTx.accountId || acc.isPrimary) {
-          const totalCost = newTx.amount + (newTx.fee || 0) + (newTx.vat || 0);
-          const newBal = newTx.type === 'inflow' ? acc.balance + newTx.amount : Math.max(0, acc.balance - totalCost);
-          return { ...acc, balance: Number(newBal.toFixed(2)) };
-        }
-        return acc;
+    // 1. Process transfer in local database: debits sender, and credits receiver if receiver exists!
+    try {
+      const transferRes = executeBirrTransfer(activeUserPhone, newTx);
+      setAccounts(transferRes.senderAccounts);
+      setTransactions(transferRes.senderTransactions);
+    } catch (err) {
+      console.error('Local transfer error:', err);
+      // Fallback deduction
+      setTransactions(prev => [newTx, ...prev]);
+      setAccounts(prevAccounts => {
+        return prevAccounts.map(acc => {
+          if (acc.id === newTx.accountId || acc.isPrimary) {
+            const totalCost = newTx.amount + (newTx.fee || 0) + (newTx.vat || 0);
+            const newBal = newTx.type === 'inflow' ? acc.balance + newTx.amount : Math.max(0, acc.balance - totalCost);
+            return { ...acc, balance: Number(newBal.toFixed(2)) };
+          }
+          return acc;
+        });
       });
-    });
+    }
 
+    // 2. Sync to server
     try {
       const res = await fetch('/api/transfer', {
         method: 'POST',
@@ -389,6 +440,8 @@ export default function App() {
         <CbeAirtimeScreen
           currentLang={currentLang}
           account={primaryAccount}
+          userName={userProfile.fullName}
+          userPhone={userProfile.phone}
           onBack={() => setViewState('home')}
           onAirtimeSuccess={handleTransferComplete}
         />

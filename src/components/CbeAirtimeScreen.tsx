@@ -51,6 +51,8 @@ export const SafaricomLogo: React.FC<{ className?: string }> = ({ className = 'w
 interface CbeAirtimeScreenProps {
   currentLang: Language;
   account: CbeAccount;
+  userName?: string;
+  userPhone?: string;
   onBack: () => void;
   onAirtimeSuccess: (tx: Transaction) => void;
 }
@@ -58,6 +60,8 @@ interface CbeAirtimeScreenProps {
 export const CbeAirtimeScreen: React.FC<CbeAirtimeScreenProps> = ({
   currentLang,
   account,
+  userName = 'CBE Customer',
+  userPhone = '',
   onBack,
   onAirtimeSuccess,
 }) => {
@@ -90,8 +94,8 @@ export const CbeAirtimeScreen: React.FC<CbeAirtimeScreenProps> = ({
       reader.readAsDataURL(file);
     }
   };
-  const [mobNo, setMobNo] = useState('0911824902');
-  const [recipientName, setRecipientName] = useState('Yared Nigusse Teshome');
+  const [mobNo, setMobNo] = useState(userPhone || '');
+  const [recipientName, setRecipientName] = useState(userName || '');
   const [amount, setAmount] = useState('100');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -121,8 +125,8 @@ export const CbeAirtimeScreen: React.FC<CbeAirtimeScreenProps> = ({
         referenceNumber: ftCode,
         transferMode: 'airtime',
         accountId: account.id,
-        senderName: 'Yared Nigusse Teshome',
-        senderAccount: '1000348298612',
+        senderName: userName,
+        senderAccount: account.accountNumber,
         receiverName: recipientName.trim() || 'Mobile Topup',
         receiverAccount: `TEL-${mobNo.slice(-4)}`,
         receiverBank: providerName,
@@ -136,7 +140,7 @@ export const CbeAirtimeScreen: React.FC<CbeAirtimeScreenProps> = ({
         status: 'completed',
         note: `Airtime Recharge for ${mobNo}`,
         channel: 'CBE Mobile App',
-        hash: generateSecurityHash(ftCode, numAmount, 'Yared Nigusse Teshome', mobNo),
+        hash: generateSecurityHash(ftCode, numAmount, userName, mobNo),
       };
 
       onAirtimeSuccess(newTx);

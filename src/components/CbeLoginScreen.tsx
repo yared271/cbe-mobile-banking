@@ -17,6 +17,7 @@ import {
 import { CbeLogo } from './CbeLogo';
 import { Language } from '../types/banking';
 import { LanguageModal } from './LanguageModal';
+import { getUserByPhone } from '../utils/userDatabase';
 
 interface CbeLoginScreenProps {
   currentLang: Language;
@@ -38,12 +39,13 @@ export const CbeLoginScreen: React.FC<CbeLoginScreenProps> = ({
   onLoginSuccess,
   onLoginWithPhone,
   onGoToRegister,
+  userName,
   registeredPin,
   logoUrl,
   onOpenLogoModal,
 }) => {
   const [loginPhone, setLoginPhone] = useState(() => {
-    return localStorage.getItem('cbe_active_user_phone') || '0911824902';
+    return localStorage.getItem('cbe_active_user_phone') || '';
   });
   const [pin, setPin] = useState('');
   const [showPin, setShowPin] = useState(false);
@@ -52,6 +54,10 @@ export const CbeLoginScreen: React.FC<CbeLoginScreenProps> = ({
   const [infoMessage, setInfoMessage] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [showLangModal, setShowLangModal] = useState(false);
+
+  // Dynamically resolve greeting name based on the entered or stored phone number
+  const matchedUser = loginPhone.trim() ? getUserByPhone(loginPhone.trim()) : null;
+  const greetingName = matchedUser?.userProfile?.fullName || (loginPhone.trim() && userName ? userName : '');
 
   const handleLogin = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -172,10 +178,17 @@ export const CbeLoginScreen: React.FC<CbeLoginScreenProps> = ({
           {/* Thin subtle horizontal divider line */}
           <div className="w-20 h-px bg-slate-200 mx-auto my-3" />
 
-          {/* Welcome back text as per screenshot */}
-          <p className="text-[13px] text-slate-500 font-normal">
-            {currentLang === 'am' ? 'እንኳን ደህና መጡ' : 'Welcome back'}
-          </p>
+          {/* Welcome back text */}
+          <div className="space-y-0.5">
+            <p className="text-[13px] text-slate-500 font-normal">
+              {currentLang === 'am' ? 'እንኳን ደህና መጡ' : 'Welcome back'}
+            </p>
+            {greetingName && (
+              <p className="text-sm font-extrabold text-[#701484]">
+                {greetingName}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Form Container */}
@@ -187,7 +200,27 @@ export const CbeLoginScreen: React.FC<CbeLoginScreenProps> = ({
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-3">
+            {/* Phone Number Field */}
+            <div className="space-y-1 text-left">
+              <div className="relative flex items-center bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-slate-200 focus-within:border-[#701484]/50 focus-within:ring-2 focus-within:ring-[#701484]/15 px-4 py-3 transition-all">
+                <Phone className="w-4.5 h-4.5 text-[#c59b27] shrink-0 mr-3 stroke-[2]" />
+                <input
+                  type="tel"
+                  value={loginPhone}
+                  disabled={isProcessing}
+                  onChange={(e) => {
+                    setLoginPhone(e.target.value);
+                    if (fieldError) setFieldError('');
+                    if (errorToast) setErrorToast(null);
+                  }}
+                  placeholder={currentLang === 'am' ? 'ስልክ ቁጥርዎን ያስገቡ (09...)' : 'Enter phone number (09...)'}
+                  className="w-full bg-transparent text-slate-900 placeholder:text-slate-400 text-sm font-bold outline-none font-mono"
+                  autoComplete="tel"
+                />
+              </div>
+            </div>
+
             {/* PIN Input Field with Lock on Left and Eye on Right */}
             <div className="space-y-1 text-left">
               <div className={`relative flex items-center bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] border ${fieldError ? 'border-red-400 ring-2 ring-red-400/20' : 'border-slate-200 focus-within:border-[#701484]/50 focus-within:ring-2 focus-within:ring-[#701484]/15'} px-4 py-3 transition-all`}>

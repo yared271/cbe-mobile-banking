@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { CbeAccount, Language, Transaction } from '../types/banking';
 import { generateSecurityHash } from '../utils/smsParser';
+import { findUserByAccountOrPhone } from '../utils/userDatabase';
 
 interface CbeTransferScreenProps {
   currentLang: Language;
@@ -88,6 +89,14 @@ export const CbeTransferScreen: React.FC<CbeTransferScreenProps> = ({
     // Digits only, max 13 digits
     const clean = val.replace(/\D/g, '').slice(0, 13);
     setAccountNumber(clean);
+
+    // Dynamic registered beneficiary lookup
+    if (clean.length >= 9) {
+      const match = findUserByAccountOrPhone(clean);
+      if (match && match.userProfile.fullName) {
+        setRecipientName(match.userProfile.fullName);
+      }
+    }
   };
 
   const handleSelectRecent = (item: RecentTransferItem) => {
@@ -185,7 +194,8 @@ export const CbeTransferScreen: React.FC<CbeTransferScreenProps> = ({
 
     setTimeout(() => {
       setLoading(false);
-      const ftCode = `FT262277V0S0`;
+      const randomSuffix = Math.floor(10000000 + Math.random() * 90000000);
+      const ftCode = `FT26${randomSuffix}`;
       const last4 = cleanAcc.slice(-4);
 
       const newTx: Transaction = {

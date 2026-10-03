@@ -16,6 +16,7 @@ import { CbeAccount, Language, Transaction, TransferMode, VerifiedBeneficiary } 
 import { OTHER_BANKS_LIST, VERIFIED_CBE_BENEFICIARIES } from '../data/initialData';
 import { formatCurrency, generateSecurityHash } from '../utils/smsParser';
 import { getTranslation } from '../locales/translations';
+import { findUserByAccountOrPhone } from '../utils/userDatabase';
 
 interface CbeTransferModalProps {
   initialMode: TransferMode;
@@ -103,6 +104,11 @@ export const CbeTransferModal: React.FC<CbeTransferModalProps> = ({
     setIsValidating(true);
     setTimeout(() => {
       setIsValidating(false);
+      const userMatch = findUserByAccountOrPhone(cbeAccountInput.trim());
+      if (userMatch) {
+        setVerifiedName(userMatch.userProfile.fullName);
+        return;
+      }
       const match = VERIFIED_CBE_BENEFICIARIES.find((b) => b.accountNumber === cbeAccountInput.trim());
       if (match) {
         setVerifiedName(match.fullName);
@@ -160,7 +166,7 @@ export const CbeTransferModal: React.FC<CbeTransferModalProps> = ({
       referenceNumber: ftCode,
       transferMode: transferMode,
       accountId: sourceAccountId,
-      senderName: userName || 'Yared Nigusse Teshome',
+      senderName: userName || 'CBE Customer',
       senderAccount: sourceAccount.accountNumber,
       receiverName: recipient || 'Beneficiary',
       receiverAccount: destAcc,

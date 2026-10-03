@@ -42,6 +42,7 @@ import { CbeLogo } from './CbeLogo';
 import { CbeAccount, Language } from '../types/banking';
 import { formatCurrency } from '../utils/smsParser';
 import { LanguageModal, EthiopiaFlagIcon, UsaFlagIcon } from './LanguageModal';
+import { usePWAInstall } from '../hooks/usePWAInstall';
 
 interface CbeHomeScreenProps {
   currentLang: Language;
@@ -98,6 +99,8 @@ export const CbeHomeScreen: React.FC<CbeHomeScreenProps> = ({
 }) => {
   const [hideBalance, setHideBalance] = useState(true);
   const [copied, setCopied] = useState(false);
+  const { isInstallable, isInstalled, isIOS, install } = usePWAInstall();
+  const [showIOSGuide, setShowIOSGuide] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshToast, setRefreshToast] = useState(false);
   const [currentDateStr, setCurrentDateStr] = useState('');
@@ -286,22 +289,18 @@ export const CbeHomeScreen: React.FC<CbeHomeScreenProps> = ({
                 <div className="text-base font-extrabold text-white leading-tight">
                   {userName.split(' ')[0]}
                 </div>
-                <div className="w-5 h-5 bg-white/10 rounded-full flex items-center justify-center p-0.5 border border-white/20">
-                  <img src="/cbe_logo.png" className="w-full h-full object-contain" alt="CBE" />
-                </div>
               </div>
             </div>
           </div>
 
           {/* Controls: Language, Refresh, Search */}
           <div className="flex items-center gap-1.5 pr-1">
-            {/* Language Selector */}
+            {/* Language Selector (Arrow removed as requested) */}
             <button
               onClick={() => setShowLangModal(true)}
               className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-white/15 border border-white/10 text-xs font-semibold text-white hover:bg-white/25 transition-colors cursor-pointer shadow-sm"
             >
               <span>{currentLang === 'am' ? 'አማርኛ' : 'English'}</span>
-              <ChevronDown className="w-3.5 h-3.5 text-purple-200" />
             </button>
 
             {/* Refresh Button */}
@@ -983,6 +982,36 @@ export const CbeHomeScreen: React.FC<CbeHomeScreenProps> = ({
                   <ChevronRight className="w-4.5 h-4.5 text-slate-300" />
                 </button>
 
+                {/* PWA Install Button */}
+                {(isInstallable || isIOS) && !isInstalled && (
+                  <button
+                    onClick={() => {
+                      if (isIOS) setShowIOSGuide(true);
+                      else install();
+                    }}
+                    className="w-full bg-[#701484]/5 p-4 rounded-[18px] border border-[#701484]/20 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex items-center justify-between hover:border-[#701484]/40 transition-all cursor-pointer text-left active:scale-[0.99] group"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-full bg-[#701484] flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+                        <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                          <polyline points="7 10 12 15 17 10" />
+                          <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h4 className="font-extrabold text-[#701484] text-[12.5px] leading-tight">
+                          Install Application
+                        </h4>
+                        <p className="text-[10.5px] text-slate-400 font-bold mt-0.5">
+                          Add CBE Mobile to your home screen
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-4.5 h-4.5 text-[#701484]/40" />
+                  </button>
+                )}
+
                 {/* 3. Change Passphrase */}
                 <button
                   onClick={() => setSettingsSubView('change_passphrase')}
@@ -1397,6 +1426,39 @@ export const CbeHomeScreen: React.FC<CbeHomeScreenProps> = ({
               </button>
             </div>
 
+          </div>
+        </div>
+      )}
+      {/* iOS Installation Guide Overlay */}
+      {showIOSGuide && (
+        <div className="fixed inset-0 z-[60] bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in">
+          <div className="bg-white w-full max-w-sm rounded-[32px] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="bg-[#701484] p-6 text-center">
+              <div className="w-16 h-16 bg-white rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg">
+                <img src="/cbe_logo.png" className="w-12 h-12 object-contain" alt="CBE Logo" />
+              </div>
+              <h3 className="text-white font-black text-lg">Install on iPhone</h3>
+            </div>
+            <div className="p-8 space-y-6">
+              <div className="flex items-start gap-4">
+                <div className="w-8 h-8 rounded-full bg-purple-50 text-[#701484] flex items-center justify-center font-black shrink-0">1</div>
+                <p className="text-slate-600 text-sm font-bold pt-1">
+                  Tap the <span className="text-[#701484]">Share</span> button in the bottom Safari toolbar.
+                </p>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="w-8 h-8 rounded-full bg-purple-50 text-[#701484] flex items-center justify-center font-black shrink-0">2</div>
+                <p className="text-slate-600 text-sm font-bold pt-1">
+                  Scroll down and tap <span className="text-[#701484]">Add to Home Screen</span>.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowIOSGuide(false)}
+                className="w-full py-4 bg-[#701484] text-white font-black rounded-2xl shadow-xl shadow-purple-200 active:scale-95 transition-transform"
+              >
+                GOT IT
+              </button>
+            </div>
           </div>
         </div>
       )}

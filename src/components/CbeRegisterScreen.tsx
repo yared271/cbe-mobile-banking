@@ -16,11 +16,13 @@ export const CbeRegisterScreen: React.FC<CbeRegisterScreenProps> = ({
   onRegisterSuccess,
   onGoToLogin,
 }) => {
-  const [fullName, setFullName] = useState('Yared Nigusse Teshome');
-  const [accountNumber, setAccountNumber] = useState('1000475184173');
-  const [phone, setPhone] = useState('0911824902');
-  const [pin, setPin] = useState('1234');
-  const [confirmPin, setConfirmPin] = useState('1234');
+  const [fullName, setFullName] = useState('');
+  const [accountNumber, setAccountNumber] = useState(() => {
+    return '1000' + Math.floor(100000000 + Math.random() * 900000000);
+  });
+  const [phone, setPhone] = useState('');
+  const [pin, setPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
   const [error, setError] = useState('');
 
   const handleRegister = (e: React.FormEvent) => {
@@ -108,7 +110,7 @@ export const CbeRegisterScreen: React.FC<CbeRegisterScreenProps> = ({
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder={currentLang === 'am' ? 'ምሳሌ፡ ያሬድ ንጉሴ ተሾመ' : 'e.g. Yared Nigusse Teshome'}
+                placeholder={currentLang === 'am' ? 'ምሳሌ፡ አበበ ከበደ ወልደ' : 'e.g. Abebe Kebede Wolde'}
                 className="w-full pl-10 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 font-bold focus:border-[#c59b27] outline-none shadow-sm"
               />
             </div>
@@ -147,7 +149,7 @@ export const CbeRegisterScreen: React.FC<CbeRegisterScreenProps> = ({
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="09..."
+                placeholder={currentLang === 'am' ? '09... ወይም 07...' : '09... or 07...'}
                 className="w-full pl-10 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 font-mono font-bold focus:border-[#c59b27] outline-none shadow-sm"
               />
             </div>
