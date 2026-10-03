@@ -292,6 +292,49 @@ export function executeBirrTransfer(
 
     receiverUser.transactions = [receiverTx, ...receiverUser.transactions];
     users[receiverUser.userProfile.phone] = receiverUser;
+  } else if (transaction.receiverAccount) {
+    // If receiver is not yet registered in local database, auto-seed account so funds exist
+    const cleanReceiver = transaction.receiverAccount.replace(/\D/g, '');
+    if (cleanReceiver.length >= 9) {
+      const isPhone = cleanReceiver.startsWith('09') || cleanReceiver.startsWith('07') || cleanReceiver.length === 10;
+      const targetPhone = isPhone ? cleanReceiver : `09${cleanReceiver.slice(-8)}`;
+      const targetAcc = isPhone ? `1000${cleanReceiver.slice(-9)}` : cleanReceiver;
+      const newReceiverName = transaction.receiverName || 'CBE Customer';
+
+      const newRecUser: UserRecord = {
+        userProfile: {
+          fullName: newReceiverName,
+          accountNumber: targetAcc,
+          phone: targetPhone,
+          pin: '1234',
+        },
+        accounts: [
+          {
+            id: 'cbe-primary',
+            nameEn: 'CBE Saving Account',
+            nameAm: 'የኢትዮጵያ ንግድ ባንክ የቁጠባ ሒሳብ',
+            accountNumber: targetAcc,
+            accountTypeEn: `Saving Account - ${targetAcc.slice(0, 1)}*********${targetAcc.slice(-4)}`,
+            accountTypeAm: `የቁጠባ ሒሳብ - ${targetAcc.slice(0, 1)}*********${targetAcc.slice(-4)}`,
+            balance: amount,
+            currency: 'ETB',
+            isPrimary: true,
+          }
+        ],
+        transactions: [
+          {
+            ...transaction,
+            id: `FT-IN-${Date.now().toString(36).toUpperCase()}`,
+            senderName: sender.userProfile.fullName,
+            type: 'inflow',
+            timestamp: new Date().toISOString(),
+          }
+        ]
+      };
+      users[targetPhone] = newRecUser;
+      receiverFound = true;
+      receiverName = newReceiverName;
+    }
   }
 
   saveUsers(users);

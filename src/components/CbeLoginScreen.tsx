@@ -6,12 +6,10 @@ import {
   Lock,
   Fingerprint,
   ArrowRight,
-  AlertCircle,
   Loader2,
   Info,
   Eye,
   EyeOff,
-  Phone,
   X,
 } from 'lucide-react';
 import { CbeLogo } from './CbeLogo';
@@ -22,11 +20,8 @@ interface CbeLoginScreenProps {
   currentLang: Language;
   onToggleLang: () => void;
   onSelectLang?: (lang: Language) => void;
-  onLoginSuccess: () => void;
-  onLoginWithPhone: (phone: string, pin: string) => Promise<{ success: boolean; error?: string }>;
-  onGoToRegister: () => void;
-  userName?: string;
-  registeredPin?: string;
+  onLoginSuccess?: () => void;
+  onLoginWithPin: (pin: string) => Promise<{ success: boolean; error?: string }>;
   logoUrl?: string;
   onOpenLogoModal?: () => void;
 }
@@ -36,16 +31,10 @@ export const CbeLoginScreen: React.FC<CbeLoginScreenProps> = ({
   onToggleLang,
   onSelectLang,
   onLoginSuccess,
-  onLoginWithPhone,
-  onGoToRegister,
-  userName,
-  registeredPin,
+  onLoginWithPin,
   logoUrl,
   onOpenLogoModal,
 }) => {
-  const [loginPhone, setLoginPhone] = useState(() => {
-    return localStorage.getItem('cbe_active_user_phone') || '';
-  });
   const [pin, setPin] = useState('');
   const [showPin, setShowPin] = useState(false);
   const [errorToast, setErrorToast] = useState<{ title: string; message: string } | null>(null);
@@ -61,19 +50,6 @@ export const CbeLoginScreen: React.FC<CbeLoginScreenProps> = ({
     setFieldError('');
     setInfoMessage('');
 
-    if (!loginPhone.trim()) {
-      setFieldError(
-        currentLang === 'am'
-          ? 'እባክዎ የስልክ ቁጥር ያስገቡ'
-          : 'This field is required'
-      );
-      setErrorToast({
-        title: currentLang === 'am' ? 'ስህተት' : 'Error',
-        message: currentLang === 'am' ? 'እባክዎ የስልክ ቁጥር ያስገቡ' : 'Phone number is required.',
-      });
-      return;
-    }
-
     if (!pin) {
       setFieldError(
         currentLang === 'am'
@@ -82,16 +58,15 @@ export const CbeLoginScreen: React.FC<CbeLoginScreenProps> = ({
       );
       setErrorToast({
         title: currentLang === 'am' ? 'ስህተት' : 'Error',
-        message: currentLang === 'am' ? 'የተሳሳተ ፒን አስገብተዋል' : 'Invalid PIN entered.',
+        message: currentLang === 'am' ? 'እባክዎ ፒን (PIN) ያስገቡ' : 'PIN is required.',
       });
       return;
     }
 
-    // Process PIN authentication
     setIsProcessing(true);
 
     try {
-      const res = await onLoginWithPhone(loginPhone, pin);
+      const res = await onLoginWithPin(pin);
       setIsProcessing(false);
       if (!res.success) {
         setFieldError(
@@ -111,7 +86,7 @@ export const CbeLoginScreen: React.FC<CbeLoginScreenProps> = ({
     }
   };
 
-  // Biometrics is disabled as requested by the user
+  // Biometrics feedback
   const handleBiometricsClick = () => {
     setErrorToast(null);
     setInfoMessage(
@@ -153,7 +128,7 @@ export const CbeLoginScreen: React.FC<CbeLoginScreenProps> = ({
 
       {/* 2. Main Center Hero Area (100% Pure White Background, Seamless Logo) */}
       <div className="flex flex-col items-center text-center my-auto py-2 space-y-4">
-        {/* CBE Official Logo - Clickable to change login screen logo ONLY */}
+        {/* CBE Official Logo - Clickable to change login screen logo */}
         <div 
           onClick={onOpenLogoModal}
           className="w-24 h-24 flex items-center justify-center bg-transparent cursor-pointer hover:scale-105 transition-transform"
@@ -161,7 +136,7 @@ export const CbeLoginScreen: React.FC<CbeLoginScreenProps> = ({
           <CbeLogo customUrl={logoUrl} isDarkBg={false} size="xl" className="w-24 h-24 object-contain bg-transparent" />
         </div>
 
-        {/* Brand Typography - Exactly matching screenshot order */}
+        {/* Brand Typography */}
         <div className="space-y-1">
           <h1 className="text-[19px] font-bold text-[#b58b38] font-serif tracking-wide leading-tight">
             የኢትዮጵያ ንግድ ባንክ
@@ -173,7 +148,7 @@ export const CbeLoginScreen: React.FC<CbeLoginScreenProps> = ({
           {/* Thin subtle horizontal divider line */}
           <div className="w-20 h-px bg-slate-200 mx-auto my-3" />
 
-          {/* Welcome back text */}
+          {/* Welcome back text ONLY (No person name as requested) */}
           <div className="space-y-0.5">
             <p className="text-[13px] text-slate-500 font-normal">
               {currentLang === 'am' ? 'እንኳን ደህና መጡ' : 'Welcome back'}
@@ -181,7 +156,7 @@ export const CbeLoginScreen: React.FC<CbeLoginScreenProps> = ({
           </div>
         </div>
 
-        {/* Form Container */}
+        {/* Form Container: ONLY PIN input, Biometrics & Login button */}
         <div className="w-full max-w-xs space-y-4 pt-1">
           {infoMessage && (
             <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 font-medium flex items-center gap-2 text-left animate-in fade-in">
@@ -190,31 +165,11 @@ export const CbeLoginScreen: React.FC<CbeLoginScreenProps> = ({
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-3">
-            {/* Phone Number Field */}
+          <form onSubmit={handleLogin} className="space-y-4">
+            {/* PIN Input Field with Soft Dimmed Lock and Placeholder */}
             <div className="space-y-1 text-left">
-              <div className="relative flex items-center bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-slate-200 focus-within:border-[#701484]/50 focus-within:ring-2 focus-within:ring-[#701484]/15 px-4 py-3 transition-all">
-                <Phone className="w-4.5 h-4.5 text-[#c59b27] shrink-0 mr-3 stroke-[2]" />
-                <input
-                  type="tel"
-                  value={loginPhone}
-                  disabled={isProcessing}
-                  onChange={(e) => {
-                    setLoginPhone(e.target.value);
-                    if (fieldError) setFieldError('');
-                    if (errorToast) setErrorToast(null);
-                  }}
-                  placeholder={currentLang === 'am' ? 'ስልክ ቁጥርዎን ያስገቡ (09...)' : 'Enter phone number (09...)'}
-                  className="w-full bg-transparent text-slate-900 placeholder:text-slate-400 text-sm font-bold outline-none font-mono"
-                  autoComplete="tel"
-                />
-              </div>
-            </div>
-
-            {/* PIN Input Field with Lock on Left and Eye on Right */}
-            <div className="space-y-1 text-left">
-              <div className={`relative flex items-center bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] border ${fieldError ? 'border-red-400 ring-2 ring-red-400/20' : 'border-slate-200 focus-within:border-[#701484]/50 focus-within:ring-2 focus-within:ring-[#701484]/15'} px-4 py-3 transition-all`}>
-                <Lock className="w-4.5 h-4.5 text-[#c59b27] shrink-0 mr-3 stroke-[2]" />
+              <div className={`relative flex items-center bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.03)] border ${fieldError ? 'border-red-400 ring-2 ring-red-400/20' : 'border-slate-200/80 focus-within:border-[#701484]/40 focus-within:ring-2 focus-within:ring-[#701484]/10'} px-4 py-3.5 transition-all`}>
+                <Lock className="w-4 h-4 text-slate-400/80 shrink-0 mr-3 stroke-[1.6]" />
                 <input
                   type={showPin ? 'text' : 'password'}
                   inputMode="numeric"
@@ -228,23 +183,24 @@ export const CbeLoginScreen: React.FC<CbeLoginScreenProps> = ({
                   }}
                   placeholder="PIN"
                   style={{
-                    color: '#0f172a',
-                    WebkitTextFillColor: '#0f172a',
+                    color: '#1e293b',
+                    WebkitTextFillColor: '#1e293b',
                   }}
-                  className="w-full bg-transparent text-slate-900 placeholder:text-slate-400 text-base font-bold outline-none tracking-widest font-mono"
+                  className="w-full bg-transparent text-slate-800 placeholder:text-slate-300 placeholder:font-normal text-sm font-semibold outline-none tracking-widest font-mono"
                   autoComplete="off"
+                  autoFocus
                 />
                 <button
                   type="button"
                   onClick={() => setShowPin(!showPin)}
-                  className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer transition-colors"
+                  className="text-slate-300 hover:text-slate-500 p-1 cursor-pointer transition-colors"
                   title={showPin ? 'Hide PIN' : 'Show PIN'}
                 >
                   {showPin ? <EyeOff className="w-4 h-4 text-[#701484]" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
 
-              {/* Red field error underneath input as shown in image.png */}
+              {/* Red field error underneath input */}
               {fieldError && (
                 <p className="text-[11px] text-red-500 font-semibold pl-2 pt-0.5 animate-in fade-in">
                   {fieldError}
@@ -252,13 +208,13 @@ export const CbeLoginScreen: React.FC<CbeLoginScreenProps> = ({
               )}
             </div>
 
-            {/* USE BIOMETRICS Button (Disabled from logging in) */}
+            {/* USE BIOMETRICS Button */}
             <div className="flex flex-col items-center justify-center pt-1">
               <button
                 type="button"
                 onClick={handleBiometricsClick}
                 className="w-13 h-13 rounded-full bg-[#701484]/80 hover:bg-[#701484] active:scale-95 text-white flex items-center justify-center shadow-lg shadow-[#701484]/20 transition-transform cursor-pointer"
-                title="Biometrics disabled"
+                title="Biometrics"
               >
                 <Fingerprint className="w-7 h-7 stroke-[1.8]" />
               </button>
@@ -285,17 +241,6 @@ export const CbeLoginScreen: React.FC<CbeLoginScreenProps> = ({
                 </>
               )}
             </button>
-
-            {/* Registration Link for New Users */}
-            <div className="pt-2 text-center">
-              <button
-                type="button"
-                onClick={onGoToRegister}
-                className="text-xs font-semibold text-[#701484] hover:underline cursor-pointer py-1"
-              >
-                {currentLang === 'am' ? 'አዲስ አካውንት ለመክፈት እዚህ ይጫኑ' : 'Don\'t have an account? Register here'}
-              </button>
-            </div>
           </form>
         </div>
       </div>
@@ -305,7 +250,7 @@ export const CbeLoginScreen: React.FC<CbeLoginScreenProps> = ({
         © Commercial Bank of Ethiopia
       </div>
 
-      {/* Exact Red Error Floating Toast as in image.png at the bottom of the screen */}
+      {/* Red Error Floating Toast as in image.png */}
       {errorToast && (
         <div className="fixed bottom-6 left-4 right-4 sm:left-auto sm:right-auto sm:w-[380px] sm:mx-auto z-50 animate-in slide-in-from-bottom-5 duration-300">
           <div className="bg-[#e53935] text-white rounded-2xl p-3.5 shadow-2xl flex items-center justify-between border border-red-400/40">
@@ -322,13 +267,11 @@ export const CbeLoginScreen: React.FC<CbeLoginScreenProps> = ({
                 </p>
               </div>
             </div>
-
             <button
-              type="button"
               onClick={() => setErrorToast(null)}
-              className="p-1 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              className="text-white/80 hover:text-white p-1 cursor-pointer transition-colors"
             >
-              <X className="w-4 h-4 stroke-[2.5]" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -338,12 +281,10 @@ export const CbeLoginScreen: React.FC<CbeLoginScreenProps> = ({
       <LanguageModal
         isOpen={showLangModal}
         currentLang={currentLang}
-        onSelectLang={(lang) => {
-          if (onSelectLang) {
-            onSelectLang(lang);
-          } else if (lang !== currentLang) {
-            onToggleLang();
-          }
+        onSelectLang={(lang: Language) => {
+          if (onSelectLang) onSelectLang(lang);
+          else if (lang !== currentLang) onToggleLang();
+          setShowLangModal(false);
         }}
         onClose={() => setShowLangModal(false)}
       />

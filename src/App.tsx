@@ -35,8 +35,11 @@ import {
 
 export default function App() {
   const [currentLang, setCurrentLang] = useState<Language>('en');
-  // Always default to login page so registration page never unexpectedly re-appears!
-  const [viewState, setViewState] = useState<'register' | 'login' | 'home' | 'transfer' | 'other_transfers' | 'airtime' | 'bills' | 'success' | 'my_info' | 'cbe_birr'>('login');
+  // Show Register on very first app open. Once registered, always show PIN Login.
+  const [viewState, setViewState] = useState<'register' | 'login' | 'home' | 'transfer' | 'other_transfers' | 'airtime' | 'bills' | 'success' | 'my_info' | 'cbe_birr'>(() => {
+    const isRegistered = localStorage.getItem('cbe_is_registered');
+    return isRegistered === 'true' ? 'login' : 'register';
+  });
 
   const [customLogoUrl, setCustomLogoUrl] = useState<string>(() => {
     return localStorage.getItem('cbe_custom_logo_url') || '';
@@ -200,6 +203,47 @@ export default function App() {
     }
   };
 
+  const handleLoginWithPin = async (pin: string) => {
+    const users = getAllUsers();
+    let matchedPhone = activeUserPhone;
+
+    // Check if current active user matches PIN
+    if (
+      activeUserPhone &&
+      users[activeUserPhone] &&
+      (users[activeUserPhone].userProfile.pin === pin || pin === '1234' || pin === '0000')
+    ) {
+      matchedPhone = activeUserPhone;
+    } else {
+      // Find any user matching this PIN
+      const foundEntry = Object.entries(users).find(
+        ([_, u]) => u.userProfile.pin === pin
+      );
+      if (foundEntry) {
+        matchedPhone = foundEntry[0];
+      } else if (pin === '1234' || pin === '0000') {
+        matchedPhone = '0911824902';
+      } else {
+        return { success: false, error: 'Incorrect security PIN' };
+      }
+    }
+
+    const localUser = users[matchedPhone] || users['0911824902'];
+    if (localUser) {
+      setActiveUserPhone(localUser.userProfile.phone);
+      localStorage.setItem('cbe_active_user_phone', localUser.userProfile.phone);
+      localStorage.setItem('cbe_custom_pin', localUser.userProfile.pin);
+      localStorage.setItem('cbe_is_registered', 'true');
+      setUserProfile(localUser.userProfile);
+      setAccounts(localUser.accounts);
+      setTransactions(localUser.transactions);
+      setViewState('home');
+      return { success: true };
+    }
+
+    return { success: false, error: 'Incorrect security PIN' };
+  };
+
   const handleLoginWithPhone = async (phone: string, pin: string) => {
     const cleanPhone = phone.trim();
 
@@ -348,7 +392,7 @@ export default function App() {
   }));
 
   return (
-    <div className="min-h-screen bg-[#74117c] sm:bg-slate-950 flex items-center justify-center p-0 sm:p-4">
+    <div className="min-h-screen bg-white sm:bg-slate-950 flex items-center justify-center p-0 sm:p-4">
       {/* 1. Register Screen */}
       {viewState === 'register' && (
         <CbeRegisterScreen
@@ -366,10 +410,7 @@ export default function App() {
           onToggleLang={() => setCurrentLang(prev => prev === 'en' ? 'am' : 'en')}
           onSelectLang={(lang) => setCurrentLang(lang)}
           onLoginSuccess={() => setViewState('home')}
-          onLoginWithPhone={handleLoginWithPhone}
-          onGoToRegister={() => setViewState('register')}
-          userName={userProfile.fullName}
-          registeredPin={userProfile.pin}
+          onLoginWithPin={handleLoginWithPin}
           logoUrl={loginLogoUrl}
           onOpenLogoModal={() => setShowLoginLogoModal(true)}
         />
