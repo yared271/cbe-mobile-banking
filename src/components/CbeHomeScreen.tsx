@@ -287,7 +287,9 @@ export const CbeHomeScreen: React.FC<CbeHomeScreenProps> = ({
               </div>
               <div className="flex items-center gap-2">
                 <div className="text-base font-extrabold text-white leading-tight">
-                  {userName.split(' ')[0]}
+                  {(!userName || userName.toLowerCase().includes('yared') || userName === 'User' || userName === 'Customer')
+                    ? (currentLang === 'am' ? 'ደንበኛ' : 'Customer')
+                    : userName.split(' ')[0]}
                 </div>
               </div>
             </div>

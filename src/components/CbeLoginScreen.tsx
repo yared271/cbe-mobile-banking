@@ -17,7 +17,6 @@ import {
 import { CbeLogo } from './CbeLogo';
 import { Language } from '../types/banking';
 import { LanguageModal } from './LanguageModal';
-import { getUserByPhone } from '../utils/userDatabase';
 
 interface CbeLoginScreenProps {
   currentLang: Language;
@@ -54,10 +53,6 @@ export const CbeLoginScreen: React.FC<CbeLoginScreenProps> = ({
   const [infoMessage, setInfoMessage] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [showLangModal, setShowLangModal] = useState(false);
-
-  // Dynamically resolve greeting name based on the entered or stored phone number
-  const matchedUser = loginPhone.trim() ? getUserByPhone(loginPhone.trim()) : null;
-  const greetingName = matchedUser?.userProfile?.fullName || (loginPhone.trim() && userName ? userName : '');
 
   const handleLogin = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -183,11 +178,6 @@ export const CbeLoginScreen: React.FC<CbeLoginScreenProps> = ({
             <p className="text-[13px] text-slate-500 font-normal">
               {currentLang === 'am' ? 'እንኳን ደህና መጡ' : 'Welcome back'}
             </p>
-            {greetingName && (
-              <p className="text-sm font-extrabold text-[#701484]">
-                {greetingName}
-              </p>
-            )}
           </div>
         </div>
 

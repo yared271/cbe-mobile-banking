@@ -12,14 +12,14 @@ export interface UserRecord {
   transactions: Transaction[];
 }
 
-const STORAGE_KEY = 'cbe_users_database_v4';
+const STORAGE_KEY = 'cbe_users_database_v5';
 const ACTIVE_PHONE_KEY = 'cbe_active_user_phone';
 const IS_REGISTERED_KEY = 'cbe_is_registered';
 
 const DEFAULT_USERS: Record<string, UserRecord> = {
   "0911824902": {
     userProfile: {
-      fullName: 'Yared Nigusse Teshome',
+      fullName: 'Customer',
       accountNumber: '1000475184173',
       phone: '0911824902',
       pin: '1234',
