@@ -30,7 +30,7 @@ export const CbeCardsModal: React.FC<CbeCardsModalProps> = ({
   onClose,
   currentLang,
   account,
-  userName = 'Abdurahman',
+  userName = 'User',
 }) => {
   const [isFrozen, setIsFrozen] = useState(false);
   const [showCardNumber, setShowCardNumber] = useState(false);
@@ -173,10 +173,14 @@ export const CbeCardsModal: React.FC<CbeCardsModalProps> = ({
               <div>
                 <span className="text-neutral-400 text-[8px] uppercase block">Cardholder</span>
                 <span className="font-bold text-neutral-200 tracking-wider">
-                  {userName.toUpperCase().includes('YARED') ? userName.toUpperCase() : 'YARED NIGUSSE'}
+                  {userName.toUpperCase()}
                 </span>
+                {/* Real-time Balance sync on card */}
+                <div className="mt-1 text-amber-300/90 font-bold text-[9px]">
+                  BAL: {account.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })} ETB
+                </div>
               </div>
-              <div>
+              <div className="text-right">
                 <span className="text-neutral-400 text-[8px] uppercase block">Expires</span>
                 <span className="font-bold text-neutral-200 tracking-wider">10 JUN 2029</span>
               </div>

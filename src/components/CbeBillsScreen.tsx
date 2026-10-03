@@ -19,34 +19,39 @@ import { CbeAccount, Language, Transaction } from '../types/banking';
 import { formatCurrency, generateSecurityHash } from '../utils/smsParser';
 import { EthioTelecomLogo, SafaricomLogo } from './CbeAirtimeScreen';
 
-// Fallback Logos for the 8 Billers
+// Fallback Logos for the 8 Billers with higher fidelity SVGs
 export const EeuLogo: React.FC<{ className?: string }> = ({ className = 'w-10 h-10' }) => (
   <svg viewBox="0 0 100 100" className={className} xmlns="http://www.w3.org/2000/svg">
-    <circle cx="50" cy="50" r="45" fill="#4caf50" />
-    <circle cx="50" cy="50" r="35" fill="#ff9800" />
-    <path d="M 50 20 L 50 80 M 35 45 L 65 45 M 30 65 L 70 65" stroke="#ffffff" strokeWidth="8" strokeLinecap="round" />
+    <rect width="100" height="100" rx="20" fill="#ffffff" />
+    <circle cx="50" cy="50" r="40" fill="#4caf50" />
+    <path d="M 50 25 L 50 75 M 35 45 L 65 45 M 35 60 L 65 60" stroke="#ffffff" strokeWidth="8" strokeLinecap="round" />
+    <circle cx="50" cy="50" r="30" fill="none" stroke="#ff9800" strokeWidth="4" />
   </svg>
 );
 
 export const AawsaLogo: React.FC<{ className?: string }> = ({ className = 'w-10 h-10' }) => (
   <svg viewBox="0 0 100 100" className={className} xmlns="http://www.w3.org/2000/svg">
-    <circle cx="50" cy="50" r="45" fill="#0082c8" />
-    <path d="M 30 50 Q 40 40 50 50 T 70 50 M 30 60 Q 40 50 50 60 T 70 60" stroke="#ffffff" strokeWidth="8" strokeLinecap="round" fill="none" />
-    <circle cx="50" cy="35" r="8" fill="#ffffff" />
+    <rect width="100" height="100" rx="20" fill="#ffffff" />
+    <circle cx="50" cy="50" r="40" fill="#0082c8" />
+    <path d="M 30 55 Q 40 45 50 55 T 70 55 M 30 65 Q 40 55 50 65 T 70 65" stroke="#ffffff" strokeWidth="6" strokeLinecap="round" fill="none" />
+    <path d="M 50 25 C 55 25 60 30 60 40 C 60 50 50 60 50 60 C 50 60 40 50 40 40 C 40 30 45 25 50 25 Z" fill="#ffffff" />
   </svg>
 );
 
 export const WeBirrLogo: React.FC<{ className?: string }> = ({ className = 'w-10 h-10' }) => (
   <svg viewBox="0 0 100 100" className={className} xmlns="http://www.w3.org/2000/svg">
-    <circle cx="50" cy="50" r="45" fill="#1b5e20" />
-    <text x="50" y="58" fill="#ffffff" fontSize="28" fontFamily="sans-serif" fontWeight="900" textAnchor="middle">We</text>
+    <rect width="100" height="100" rx="20" fill="#1b5e20" />
+    <path d="M 25 40 L 40 70 L 75 30" stroke="#ffffff" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    <text x="50" y="85" fill="#ffffff" fontSize="18" fontFamily="sans-serif" fontWeight="900" textAnchor="middle">WEBIRR</text>
   </svg>
 );
 
 export const WebSprixLogo: React.FC<{ className?: string }> = ({ className = 'w-10 h-10' }) => (
   <svg viewBox="0 0 100 100" className={className} xmlns="http://www.w3.org/2000/svg">
-    <rect x="10" y="10" width="80" height="80" rx="20" fill="#fbc02d" />
-    <text x="50" y="58" fill="#000000" fontSize="32" fontFamily="sans-serif" fontWeight="900" textAnchor="middle">WS</text>
+    <rect width="100" height="100" rx="20" fill="#fbc02d" />
+    <circle cx="50" cy="50" r="30" fill="none" stroke="#000000" strokeWidth="6" />
+    <path d="M 50 20 L 50 80 M 20 50 L 80 50" stroke="#000000" strokeWidth="4" />
+    <text x="50" y="58" fill="#000000" fontSize="24" fontFamily="sans-serif" fontWeight="900" textAnchor="middle">WS</text>
   </svg>
 );
 
@@ -192,8 +197,8 @@ export const CbeBillsScreen: React.FC<CbeBillsScreenProps> = ({
         referenceNumber: ftCode,
         transferMode: 'cbe_to_cbe',
         accountId: account.id,
-        senderName: 'Wajira Yadeta Lidi',
-        senderAccount: 'ETB-0997',
+        senderName: localStorage.getItem('cbe_user_full_name') || 'User',
+        senderAccount: `ETB-${account.accountNumber.slice(-4)}`,
         receiverName: `${utilObj?.name || 'Utility Provider'}`,
         receiverAccount: customerRef || 'BILL-AUTO-SETTLE',
         receiverBank: 'Commercial Bank of Ethiopia (Utility Portal)',
@@ -207,7 +212,7 @@ export const CbeBillsScreen: React.FC<CbeBillsScreenProps> = ({
         status: 'completed',
         note: `${utilObj?.name} Settlement (#${customerRef || '884920'})`,
         channel: 'CBE Mobile App',
-        hash: generateSecurityHash(ftCode, numAmount, 'Wajira Yadeta Lidi', utilObj?.name || 'Utility'),
+        hash: generateSecurityHash(ftCode, numAmount, localStorage.getItem('cbe_user_full_name') || 'User', utilObj?.name || 'Utility'),
       };
 
       onPaymentSuccess(newTx);
@@ -215,7 +220,7 @@ export const CbeBillsScreen: React.FC<CbeBillsScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#f3f4f8] text-slate-800 flex flex-col justify-between max-w-full mx-auto relative shadow-2xl overflow-hidden font-sans border-x border-slate-200">
+    <div className="min-h-screen bg-white text-slate-800 flex flex-col justify-between w-full max-w-[420px] mx-auto relative shadow-2xl overflow-hidden font-sans pb-4">
       {/* Top Header */}
       <div className="bg-[#74117c] text-white pt-5 pb-5 px-4 shadow-md">
         <div className="flex items-center gap-3">

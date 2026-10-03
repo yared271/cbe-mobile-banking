@@ -44,7 +44,7 @@ const DEFAULT_RECENT_TRANSFERS: RecentTransferItem[] = [
 export const CbeTransferScreen: React.FC<CbeTransferScreenProps> = ({
   currentLang,
   account,
-  userName = 'Yared Nigusse Teshome',
+  userName = 'User',
   onBack,
   onTransferSuccess,
 }) => {
@@ -124,7 +124,7 @@ export const CbeTransferScreen: React.FC<CbeTransferScreenProps> = ({
       return;
     }
 
-    const resolvedRecipient = recipientName.trim() || 'Mikyas Kassa Birhanu';
+    const resolvedRecipient = recipientName.trim() || 'CBE Customer';
 
     const numAmount = parseFloat(amount);
     if (isNaN(numAmount) || numAmount <= 0) {
@@ -193,10 +193,10 @@ export const CbeTransferScreen: React.FC<CbeTransferScreenProps> = ({
         referenceNumber: ftCode,
         transferMode: 'cbe_to_cbe',
         accountId: account.id,
-        senderName: userName || 'Yared Nigusse Teshome',
+        senderName: userName,
         senderAccount: `ETB-${account.accountNumber.slice(-4)}`,
         receiverName: resolvedRecipient,
-        receiverAccount: `ETB-${last4}`,
+        receiverAccount: cleanAcc, // Full account number for server matching
         receiverBank: 'Commercial Bank of Ethiopia',
         amount: numAmount,
         fee: 1.00,
@@ -208,7 +208,7 @@ export const CbeTransferScreen: React.FC<CbeTransferScreenProps> = ({
         status: 'completed',
         note: remark.trim() || 'MB transfer',
         channel: 'CBE Mobile App',
-        hash: generateSecurityHash(ftCode, numAmount, userName || 'Yared Nigusse Teshome', resolvedRecipient),
+        hash: generateSecurityHash(ftCode, numAmount, userName, resolvedRecipient),
       };
 
       onTransferSuccess(newTx);
@@ -216,7 +216,7 @@ export const CbeTransferScreen: React.FC<CbeTransferScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#74117c] text-slate-800 flex flex-col justify-between max-w-md mx-auto relative shadow-2xl overflow-x-hidden font-sans">
+    <div className="min-h-screen bg-white text-slate-800 flex flex-col justify-between w-full max-w-[420px] mx-auto relative shadow-2xl overflow-hidden font-sans">
       {/* Header Bar */}
       <div className="bg-[#74117c] px-4 pt-4 pb-4 flex items-center justify-between text-white shrink-0">
         <div className="flex items-center gap-4">

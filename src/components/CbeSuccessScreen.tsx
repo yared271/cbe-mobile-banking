@@ -61,10 +61,20 @@ export const CbeSuccessScreen: React.FC<CbeSuccessScreenProps> = ({
     hour12: true,
   });
 
-  const senderDisplayName = transaction.senderName || 'Wajira Yadeta Lidi';
-  const senderAccountDisplay = transaction.senderAccount || 'ETB-0997';
-  const receiverDisplayName = transaction.receiverName || 'Yared Nigusse Teshome';
-  const receiverAccountDisplay = transaction.receiverAccount || 'ETB-8612';
+  const senderDisplayName = transaction.senderName;
+  const senderAccountDisplay = transaction.senderAccount;
+  const receiverDisplayName = transaction.receiverName;
+  
+  // Helper to mask account for display (e.g. 1*********8612)
+  const maskAccountDisplay = (acc: string) => {
+    const digits = acc.replace(/\D/g, '');
+    if (digits.length >= 10) {
+      return `${digits[0]}*********${digits.slice(-4)}`;
+    }
+    return acc.startsWith('ETB-') ? acc : `ETB-${acc.slice(-4)}`;
+  };
+  
+  const receiverAccountDisplay = maskAccountDisplay(transaction.receiverAccount);
 
   useEffect(() => {
     const qrPayload = JSON.stringify({

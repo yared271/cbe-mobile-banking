@@ -81,7 +81,7 @@ Total Amount Debited: ${formatCurrency(totalDebited, 'ETB')}
 Payer Name: ${transaction.senderName}
 Payer Account: ${transaction.senderAccount}
 Beneficiary Name: ${transaction.receiverName}
-Beneficiary Account: ${transaction.receiverAccount}
+Beneficiary Account: ${transaction.receiverAccount.length > 10 ? `${transaction.receiverAccount[0]}*********${transaction.receiverAccount.slice(-4)}` : transaction.receiverAccount}
 Destination Bank: ${transaction.receiverBank}
 Channel: ${transaction.channel}
 Payment Purpose: ${transaction.note}
@@ -197,7 +197,7 @@ Verified & Settled via CBE Core Banking Network
               <div className="text-right">
                 <div className="font-bold text-amber-200">{transaction.receiverName}</div>
                 <div className="font-mono text-[11px] text-purple-300">
-                  {transaction.receiverAccount} ({transaction.receiverBank})
+                  {transaction.receiverAccount.length > 10 ? `${transaction.receiverAccount[0]}*********${transaction.receiverAccount.slice(-4)}` : transaction.receiverAccount} ({transaction.receiverBank})
                 </div>
               </div>
             </div>

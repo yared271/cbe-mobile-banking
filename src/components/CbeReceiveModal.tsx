@@ -13,7 +13,7 @@ interface CbeReceiveModalProps {
 
 export const CbeReceiveModal: React.FC<CbeReceiveModalProps> = ({
   account,
-  userName = 'Yared Nigusse',
+  userName,
   currentLang,
   onClose,
 }) => {
@@ -27,7 +27,7 @@ export const CbeReceiveModal: React.FC<CbeReceiveModalProps> = ({
     const payload = JSON.stringify({
       bank: 'CBE',
       name: userName,
-      account: '1000348298612',
+      account: account.accountNumber,
       amount: amount,
       action: 'PAY_ME_CBE'
     });
@@ -41,7 +41,7 @@ export const CbeReceiveModal: React.FC<CbeReceiveModalProps> = ({
   }, [account, userName, amount]);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText('1000348298612');
+    navigator.clipboard.writeText(account.accountNumber);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -95,7 +95,7 @@ export const CbeReceiveModal: React.FC<CbeReceiveModalProps> = ({
               <div className="space-y-0.5">
                 <span className="text-[9.5px] text-slate-500 block uppercase font-bold tracking-wider">Account No</span>
                 <span className="font-bold text-slate-100 font-mono text-[11px] tracking-wide">
-                  1********8612
+                  {account.accountNumber.length > 4 ? `${account.accountNumber[0]}********${account.accountNumber.slice(-4)}` : account.accountNumber}
                 </span>
               </div>
               <div className="text-right space-y-0.5">

@@ -61,7 +61,7 @@ export const CbeRegisterScreen: React.FC<CbeRegisterScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#fafbfc] text-slate-800 flex flex-col justify-between w-full max-w-full mx-auto relative shadow-2xl overflow-hidden font-sans border-x border-slate-200">
+    <div className="min-h-screen bg-white text-slate-800 flex flex-col justify-between w-full max-w-[420px] mx-auto relative shadow-2xl overflow-hidden font-sans">
       {/* Top Header */}
       <div className="p-4 pt-6 flex items-center justify-between">
         <div className="flex items-center gap-2">

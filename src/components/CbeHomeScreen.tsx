@@ -61,7 +61,6 @@ interface CbeHomeScreenProps {
   onOpenCbeBirr: () => void;
   onOpenReceiveQr: () => void;
   onOpenReceiveModal: () => void;
-  onOpenLogoModal: () => void;
   onOpenSearch: () => void;
   onOpenBranches: () => void;
   onOpenSettings: () => void;
@@ -76,7 +75,7 @@ export const CbeHomeScreen: React.FC<CbeHomeScreenProps> = ({
   onToggleLang,
   onSelectLang,
   account,
-  userName = 'Abdurahman',
+  userName = 'User',
   logoUrl,
   onOpenCashOut,
   onOpenMiniStatement,
@@ -89,7 +88,6 @@ export const CbeHomeScreen: React.FC<CbeHomeScreenProps> = ({
   onOpenCbeBirr,
   onOpenReceiveQr,
   onOpenReceiveModal,
-  onOpenLogoModal,
   onOpenSearch,
   onOpenBranches,
   onOpenSettings,
@@ -207,7 +205,7 @@ export const CbeHomeScreen: React.FC<CbeHomeScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] text-slate-800 flex flex-col justify-between w-full max-w-full mx-auto relative shadow-2xl overflow-hidden font-sans pb-28 select-none">
+    <div className="min-h-screen bg-[#f8f9fa] text-slate-800 flex flex-col justify-between w-full max-w-[420px] mx-auto relative shadow-2xl overflow-hidden font-sans pb-28 select-none">
       {/* Toast Notification when refreshed */}
       {refreshToast && (
         <div className="fixed top-12 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 text-white px-4 py-2.5 rounded-2xl shadow-xl flex items-center gap-2 text-xs font-semibold backdrop-blur-xs border border-white/10 animate-in fade-in slide-in-from-top-4 duration-300">
@@ -254,7 +252,10 @@ export const CbeHomeScreen: React.FC<CbeHomeScreenProps> = ({
             <button className="text-white hover:opacity-80 transition-opacity p-1 cursor-pointer">
               <Search className="w-5 h-5 stroke-[2.3]" />
             </button>
-            <button className="text-white hover:opacity-80 transition-opacity p-1 cursor-pointer flex flex-col justify-center items-center gap-0.75 w-5 h-5">
+            <button 
+              onClick={onOpenSettings}
+              className="text-white hover:opacity-80 transition-opacity p-1 cursor-pointer flex flex-col justify-center items-center gap-0.75 w-5 h-5"
+            >
               <span className="w-1.25 h-1.25 rounded-full bg-white block" />
               <span className="w-1.25 h-1.25 rounded-full bg-white block" />
               <span className="w-1.25 h-1.25 rounded-full bg-white block" />
@@ -282,7 +283,7 @@ export const CbeHomeScreen: React.FC<CbeHomeScreenProps> = ({
                 {currentLang === 'am' ? 'ሰላም,' : 'Hello,'}
               </div>
               <div className="text-base font-extrabold text-white leading-tight">
-                {userName.split(' ')[0] || (currentLang === 'am' ? 'አብዱራህማን' : 'Abdurahman')}
+                {userName.split(' ')[0]}
               </div>
             </div>
           </div>
@@ -368,15 +369,15 @@ export const CbeHomeScreen: React.FC<CbeHomeScreenProps> = ({
 
           <div className="relative z-10 flex flex-col justify-between space-y-3.5">
             {/* Card Header with 3D Gold Logo */}
-            <div className="flex items-center gap-3">
-              <CbeLogo customUrl={logoUrl} isDarkBg={true} size="sm" className="w-9.5 h-9.5 shrink-0" />
-              <div>
-                <h3 className="text-xs sm:text-[13px] font-bold text-[#dfb743] font-serif tracking-wide leading-tight">
-                  {currentLang === 'am' ? 'የኢትዮጵያ ንግድ ባንክ' : 'Commercial Bank of Ethiopia'}
+            <div className="flex items-center gap-3.5">
+              <CbeLogo customUrl={logoUrl} isDarkBg={true} size="md" className="w-12 h-12 shrink-0" />
+              <div className="flex flex-col">
+                <h3 className="text-sm sm:text-[15px] font-bold text-[#dfb743] font-serif tracking-tight leading-none mb-1">
+                  የኢትዮጵያ ንግድ ባንክ
                 </h3>
-                <p className="text-[9.5px] text-[#dfb743]/85 font-mono tracking-tight">
-                  {currentLang === 'am' ? 'ሁሌም የሚተማመኑበት ባንክ!' : 'The bank you can always rely on!'}
-                </p>
+                <h4 className="text-[10px] sm:text-[11px] font-bold text-[#dfb743]/90 tracking-wider uppercase font-sans leading-none">
+                  COMMERCIAL BANK OF ETHIOPIA
+                </h4>
               </div>
             </div>
 
@@ -1136,16 +1137,9 @@ export const CbeHomeScreen: React.FC<CbeHomeScreenProps> = ({
               {settingsSubView === 'account_pref' && (
                 <div className="space-y-4">
                   <p className="text-xs text-slate-400 font-semibold">
-                    Customize your login logo or config preferences.
+                    Config your account visibility and preferences.
                   </p>
                   
-                  <button
-                    onClick={onOpenLogoModal}
-                    className="w-full bg-[#701484]/5 hover:bg-[#701484]/10 p-4.5 rounded-2xl border border-purple-100 text-center cursor-pointer transition-all"
-                  >
-                    <span className="text-xs font-bold text-[#701484]">Change CBE Brand Logo</span>
-                  </button>
-
                   <div className="bg-slate-50 p-4.5 rounded-3xl space-y-3.5 border border-slate-100">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-slate-700">Hide balance by default</span>

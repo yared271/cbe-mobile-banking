@@ -187,8 +187,8 @@ export const CbeOtherTransfersScreen: React.FC<CbeOtherTransfersScreenProps> = (
         referenceNumber: ftCode,
         transferMode: 'other_banks',
         accountId: account.id,
-        senderName: 'Wajira Yadeta Lidi',
-        senderAccount: 'ETB-0997',
+        senderName: localStorage.getItem('cbe_user_full_name') || 'User',
+        senderAccount: `ETB-${account.accountNumber.slice(-4)}`,
         receiverName: resolvedRecipient,
         receiverAccount: phoneOrAcc,
         receiverBank: bankOrWalletName,
@@ -202,7 +202,7 @@ export const CbeOtherTransfersScreen: React.FC<CbeOtherTransfersScreenProps> = (
         status: 'completed',
         note: remark || 'MB transfer',
         channel: 'CBE Mobile App',
-        hash: generateSecurityHash(ftCode, numAmount, 'Wajira Yadeta Lidi', resolvedRecipient),
+        hash: generateSecurityHash(ftCode, numAmount, localStorage.getItem('cbe_user_full_name') || 'User', resolvedRecipient),
       };
 
       onTransferSuccess(newTx);
@@ -212,66 +212,66 @@ export const CbeOtherTransfersScreen: React.FC<CbeOtherTransfersScreenProps> = (
   const activeOptionObj = options.find((o) => o.id === selectedOption);
 
   return (
-    <div className="w-full min-h-screen bg-[#74117c] text-slate-800 flex flex-col justify-between max-w-md mx-auto relative shadow-2xl overflow-x-hidden font-sans">
+    <div className="w-full min-h-screen bg-[#74117c] text-slate-800 flex flex-col justify-between max-w-[480px] mx-auto relative shadow-2xl overflow-x-hidden font-sans">
       {/* Header Bar matching image.png */}
-      <div className="bg-[#74117c] px-4 pt-4 pb-4 flex items-center justify-between text-white shrink-0">
-        <div className="flex items-center gap-3">
+      <div className="bg-[#74117c] px-5 pt-5 pb-4 flex items-center justify-between text-white shrink-0">
+        <div className="flex items-center gap-4">
           <button
             onClick={onBack}
-            className="p-1 rounded-full text-white hover:bg-white/10 transition-colors cursor-pointer"
+            className="p-1.5 rounded-full text-white hover:bg-white/10 transition-colors cursor-pointer"
           >
-            <ChevronLeft className="w-6 h-6 stroke-[2.5]" />
+            <ChevronLeft className="w-6.5 h-6.5 stroke-[2.5]" />
           </button>
-          <h1 className="text-base font-medium tracking-wide">
+          <h1 className="text-lg font-bold tracking-wide">
             Other Transfers
           </h1>
         </div>
 
         <button
           onClick={() => setShowSearch(!showSearch)}
-          className="p-1.5 text-white hover:text-purple-200 transition-colors cursor-pointer"
+          className="p-2 text-white hover:text-purple-200 transition-colors cursor-pointer"
         >
-          <Search className="w-5 h-5 stroke-[2.2]" />
+          <Search className="w-6 h-6 stroke-[2.2]" />
         </button>
       </div>
 
       {/* Optional Search Bar */}
       {showSearch && (
-        <div className="px-4 pb-3 bg-[#74117c] animate-in slide-in-from-top duration-200">
+        <div className="px-5 pb-4 bg-[#74117c] animate-in slide-in-from-top duration-200">
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search transfer options..."
-            className="w-full px-3.5 py-2 bg-white/10 text-white placeholder:text-purple-200 rounded-xl text-xs outline-none border border-white/20"
+            className="w-full px-4 py-3 bg-white/15 text-white placeholder:text-purple-200 rounded-2xl text-sm outline-none border border-white/20"
           />
         </div>
       )}
 
       {/* Main Container Sheet matching image.png */}
-      <div className="bg-[#f8f9fa] rounded-t-3xl pt-5 px-4 pb-6 flex-1 flex flex-col overflow-y-auto space-y-3">
+      <div className="bg-[#f8f9fa] rounded-t-[40px] pt-7 px-5 pb-8 flex-1 flex flex-col overflow-y-auto space-y-4">
         {filteredOptions.map((opt) => (
           <div
             key={opt.id}
             onClick={() => handleSelectOption(opt.id)}
-            className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex items-center justify-between hover:border-purple-200 hover:shadow-md transition-all cursor-pointer group"
+            className="bg-white rounded-3xl p-5 shadow-[0_2px_15px_rgba(0,0,0,0.04)] border border-slate-100 flex items-center justify-between hover:border-purple-200 hover:shadow-md transition-all cursor-pointer group"
           >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100 group-hover:bg-purple-50 transition-colors">
+            <div className="flex items-center gap-5">
+              <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100 group-hover:bg-purple-50 transition-colors">
                 {opt.icon}
               </div>
               <div>
-                <div className="text-sm font-bold text-slate-800 group-hover:text-[#74117c] transition-colors">
+                <div className="text-base font-extrabold text-slate-800 group-hover:text-[#74117c] transition-colors">
                   {opt.title}
                 </div>
-                <div className="text-xs text-slate-400 font-medium mt-0.5">
+                <div className="text-xs text-slate-400 font-semibold mt-1">
                   {opt.subtitle}
                 </div>
               </div>
             </div>
 
             <div className="text-[#74117c]">
-              <ChevronRight className="w-5 h-5 stroke-[2.5]" />
+              <ChevronRight className="w-6 h-6 stroke-[2.8]" />
             </div>
           </div>
         ))}

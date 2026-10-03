@@ -28,9 +28,15 @@ import { CbeBirrScreen } from './components/CbeBirrScreen';
 
 export default function App() {
   const [currentLang, setCurrentLang] = useState<Language>('en');
-  const [viewState, setViewState] = useState<'register' | 'login' | 'home' | 'transfer' | 'other_transfers' | 'airtime' | 'bills' | 'success' | 'my_info' | 'cbe_birr'>('login');
+  const [viewState, setViewState] = useState<'register' | 'login' | 'home' | 'transfer' | 'other_transfers' | 'airtime' | 'bills' | 'success' | 'my_info' | 'cbe_birr'>(() => {
+    const isRegistered = localStorage.getItem('cbe_is_registered') === 'true';
+    return isRegistered ? 'login' : 'register';
+  });
   const [customLogoUrl, setCustomLogoUrl] = useState<string>(() => {
     return localStorage.getItem('cbe_custom_logo_url') || '';
+  });
+  const [loginLogoUrl, setLoginLogoUrl] = useState<string>(() => {
+    return localStorage.getItem('cbe_login_logo_url') || '';
   });
   const [activeUserPhone, setActiveUserPhone] = useState<string>(() => {
     return localStorage.getItem('cbe_active_user_phone') || '0911824902';
@@ -80,9 +86,9 @@ export default function App() {
     referenceNumber: 'FT262277V0S0',
     transferMode: 'cbe_to_cbe',
     accountId: 'cbe-primary',
-    senderName: 'Yared Nigusse Teshome',
+    senderName: userProfile.fullName,
     senderAccount: 'ETB-0997',
-    receiverName: 'Mikyas Kassa Birhanu',
+    receiverName: 'CBE Customer',
     receiverAccount: 'ETB-8612',
     receiverBank: 'Commercial Bank of Ethiopia',
     amount: 2130.00,
@@ -102,7 +108,7 @@ export default function App() {
   const [showOtherTransferModal, setShowOtherTransferModal] = useState(false);
   const [showReceiveModal, setShowReceiveModal] = useState(false);
   const [showScanQrModal, setShowScanQrModal] = useState(false);
-  const [showLogoModal, setShowLogoModal] = useState(false);
+  const [showLoginLogoModal, setShowLoginLogoModal] = useState(false);
   const [showSmsModal, setShowSmsModal] = useState(false);
   const [showStatementModal, setShowStatementModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -138,7 +144,7 @@ export default function App() {
   }, [activeUserPhone]);
 
   useEffect(() => {
-    const interval = setInterval(fetchState, 4500); // Poll every 4.5 seconds
+    const interval = setInterval(fetchState, 3000); // Poll every 3 seconds for real-time feel
     return () => clearInterval(interval);
   }, [activeUserPhone]);
 
@@ -203,6 +209,7 @@ export default function App() {
     const updatedAccounts = accounts.map(a => a.id === 'cbe-primary' ? { ...a, accountNumber: data.accountNumber } : a);
     setAccounts(updatedAccounts);
     setActiveUserPhone(data.phone);
+    localStorage.setItem('cbe_user_full_name', data.fullName);
     localStorage.setItem('cbe_active_user_phone', data.phone);
     localStorage.setItem('cbe_is_registered', 'true');
     setViewState('home');
@@ -262,12 +269,13 @@ export default function App() {
   };
 
   const handleTransferComplete = (newTx: Transaction) => {
+    // Ensure the formatted transaction preserves the full receiver account for server matching
     const formattedTx: Transaction = {
       ...newTx,
-      senderName: userProfile.fullName || 'Yared Nigusse Teshome',
-      senderAccount: 'ETB-0997',
-      receiverName: newTx.receiverName || 'Mikyas Kassa Birhanu',
-      receiverAccount: newTx.receiverAccount || 'ETB-8612',
+      senderName: userProfile.fullName,
+      senderAccount: `ETB-${primaryAccount.accountNumber.slice(-4)}`,
+      receiverName: newTx.receiverName || 'CBE Customer',
+      receiverAccount: newTx.receiverAccount || 'CBE-GENERIC-ACC',
     };
     handleAddTransaction(formattedTx);
     setLastSuccessTx(formattedTx);
@@ -311,7 +319,8 @@ export default function App() {
           onGoToRegister={() => setViewState('register')}
           userName={userProfile.fullName}
           registeredPin={userProfile.pin}
-          logoUrl={customLogoUrl}
+          logoUrl={loginLogoUrl}
+          onOpenLogoModal={() => setShowLoginLogoModal(true)}
         />
       )}
 
@@ -335,7 +344,6 @@ export default function App() {
           onOpenCbeBirr={() => setViewState('cbe_birr')}
           onOpenReceiveQr={() => setShowScanQrModal(true)}
           onOpenReceiveModal={() => setShowReceiveModal(true)}
-          onOpenLogoModal={() => setShowLogoModal(true)}
           onOpenSearch={() => setShowSearchModal(true)}
           onOpenBranches={() => setShowBranchesModal(true)}
           onOpenSettings={() => setShowSettingsModal(true)}
@@ -487,7 +495,6 @@ export default function App() {
         onToggleLang={() => setCurrentLang(prev => prev === 'en' ? 'am' : 'en')}
         userProfile={userProfile}
         onUpdatePin={handleUpdatePin}
-        onOpenLogoModal={() => setShowLogoModal(true)}
         onLogout={() => {
           setShowSettingsModal(false);
           setViewState('login');
@@ -559,14 +566,14 @@ export default function App() {
         account={primaryAccount}
       />
 
-      {/* CBE Logo Modal */}
-      {showLogoModal && (
+      {/* Login Screen Logo Modal */}
+      {showLoginLogoModal && (
         <CbeLogoModal
-          onClose={() => setShowLogoModal(false)}
-          currentLogoUrl={customLogoUrl}
+          onClose={() => setShowLoginLogoModal(false)}
+          currentLogoUrl={loginLogoUrl}
           onUpdateLogo={(newUrl) => {
-            setCustomLogoUrl(newUrl);
-            localStorage.setItem('cbe_custom_logo_url', newUrl);
+            setLoginLogoUrl(newUrl);
+            localStorage.setItem('cbe_login_logo_url', newUrl);
           }}
         />
       )}

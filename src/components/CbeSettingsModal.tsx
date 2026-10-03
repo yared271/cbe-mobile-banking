@@ -16,6 +16,8 @@ import {
   EyeOff,
   CheckCircle2,
   AlertCircle,
+  RefreshCcw,
+  Users,
 } from 'lucide-react';
 import { Language } from '../types/banking';
 import { CbeMyInformationScreen } from './CbeMyInformationScreen';
@@ -48,7 +50,7 @@ export const CbeSettingsModal: React.FC<CbeSettingsModalProps> = ({
 }) => {
   const activePin = userProfile.pin || localStorage.getItem('cbe_custom_pin') || '1234';
 
-  const [activeSubScreen, setActiveSubScreen] = useState<'my_info' | 'change_pin' | 'biometrics' | null>(null);
+  const [activeSubScreen, setActiveSubScreen] = useState<'my_info' | 'change_pin' | 'biometrics' | 'reset' | null>(null);
 
   // PIN change state
   const [currentPinInput, setCurrentPinInput] = useState(activePin);
@@ -105,11 +107,26 @@ export const CbeSettingsModal: React.FC<CbeSettingsModalProps> = ({
     }, 2000);
   };
 
+  const handleSystemReset = async () => {
+    if (confirm('Warning: This will clear all transactions and reset all user balances to 5 Million ETB. Proceed?')) {
+      try {
+        const res = await fetch('/api/state/reset', { method: 'POST' });
+        if (res.ok) {
+          localStorage.clear();
+          window.location.reload();
+        }
+      } catch (e) {
+        localStorage.clear();
+        window.location.reload();
+      }
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-xs flex items-start justify-center p-0 overflow-hidden animate-in fade-in">
       <div className="w-full h-full max-h-screen bg-[#f8f9fa] text-slate-800 flex flex-col justify-between max-w-md mx-auto relative shadow-2xl overflow-hidden font-sans">
         
-        {/* Top Header Bar matching Screenshot_20261002-100902.jpg - Always Sticky at top */}
+        {/* Top Header Bar */}
         <div className="bg-[#74117c] px-4 pt-3.5 pb-3.5 flex items-center justify-between text-white shrink-0 sticky top-0 z-20 shadow-sm">
           <div className="flex items-center gap-3">
             <button
@@ -134,7 +151,7 @@ export const CbeSettingsModal: React.FC<CbeSettingsModalProps> = ({
           </div>
         </div>
 
-        {/* Main Settings Content Area matching Screenshot_20261002-100902.jpg */}
+        {/* Main Settings Content Area */}
         <div className="flex-1 px-4 pt-4 pb-8 space-y-5 overflow-y-auto">
           {/* PWA App Install Banner */}
           <PWAInstallButton />
@@ -146,7 +163,6 @@ export const CbeSettingsModal: React.FC<CbeSettingsModalProps> = ({
             </h2>
 
             <div className="space-y-2">
-              {/* Item 1: Language */}
               <div
                 onClick={onToggleLang}
                 className="bg-white rounded-2xl p-4 border border-slate-100 shadow-2xs flex items-center justify-between hover:border-purple-200 transition-all cursor-pointer"
@@ -165,7 +181,6 @@ export const CbeSettingsModal: React.FC<CbeSettingsModalProps> = ({
                 <ChevronRight className="w-4 h-4 text-slate-400" />
               </div>
 
-              {/* Item 2: Account Preferences */}
               <div
                 onClick={() => setActiveSubScreen('my_info')}
                 className="bg-white rounded-2xl p-4 border border-slate-100 shadow-2xs flex items-center justify-between hover:border-purple-200 transition-all cursor-pointer"
@@ -180,22 +195,6 @@ export const CbeSettingsModal: React.FC<CbeSettingsModalProps> = ({
                 </div>
                 <ChevronRight className="w-4 h-4 text-slate-400" />
               </div>
-
-              {/* Item 3: Notification Preferences */}
-              <div
-                onClick={() => alert('Notification Preferences: All Push SMS Notifications are active.')}
-                className="bg-white rounded-2xl p-4 border border-slate-100 shadow-2xs flex items-center justify-between hover:border-purple-200 transition-all cursor-pointer"
-              >
-                <div className="flex items-center gap-3.5">
-                  <div className="w-9 h-9 rounded-xl bg-purple-50 text-[#74117c] flex items-center justify-center shrink-0">
-                    <Bell className="w-5 h-5 stroke-[2]" />
-                  </div>
-                  <span className="text-xs font-bold text-slate-800">
-                    Notification Preferences
-                  </span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-slate-400" />
-              </div>
             </div>
           </div>
 
@@ -206,7 +205,6 @@ export const CbeSettingsModal: React.FC<CbeSettingsModalProps> = ({
             </h2>
 
             <div className="space-y-2">
-              {/* Item 4: Biometric Login */}
               <div
                 onClick={() => setActiveSubScreen('biometrics')}
                 className="bg-slate-100/90 rounded-2xl p-4 border border-slate-200/80 shadow-2xs flex items-center justify-between hover:border-purple-200 transition-all cursor-pointer"
@@ -222,7 +220,6 @@ export const CbeSettingsModal: React.FC<CbeSettingsModalProps> = ({
                 <ChevronRight className="w-4 h-4 text-slate-400" />
               </div>
 
-              {/* Item 5: Change PIN */}
               <div
                 onClick={() => setActiveSubScreen('change_pin')}
                 className="bg-white rounded-2xl p-4 border border-slate-100 shadow-2xs flex items-center justify-between hover:border-purple-200 transition-all cursor-pointer"
@@ -237,93 +234,97 @@ export const CbeSettingsModal: React.FC<CbeSettingsModalProps> = ({
                 </div>
                 <ChevronRight className="w-4 h-4 text-slate-400" />
               </div>
+            </div>
+          </div>
 
-              {/* Item 6: Change Passphrase */}
+          {/* Section 3: Maintenance & Actions */}
+          <div className="space-y-2.5">
+            <h2 className="text-sm font-bold text-slate-400 tracking-tight uppercase text-[10px]">
+              Advanced / Maintenance
+            </h2>
+
+            <div className="space-y-2">
+              {/* Switch User Simulator for P2P Testing */}
               <div
-                onClick={() => setActiveSubScreen('change_pin')}
+                onClick={onLogout}
                 className="bg-white rounded-2xl p-4 border border-slate-100 shadow-2xs flex items-center justify-between hover:border-purple-200 transition-all cursor-pointer"
               >
                 <div className="flex items-center gap-3.5">
-                  <div className="w-9 h-9 rounded-xl bg-purple-50 text-[#74117c] flex items-center justify-center shrink-0">
-                    <Lock className="w-5 h-5 stroke-[2]" />
+                  <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                    <Users className="w-5 h-5 stroke-[2]" />
                   </div>
-                  <span className="text-xs font-bold text-slate-800">
-                    Change Passphrase
-                  </span>
+                  <div>
+                    <div className="text-xs font-bold text-slate-800">Switch User / Account</div>
+                    <div className="text-[10px] text-slate-400 font-medium">Test P2P Transfers with another phone</div>
+                  </div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-slate-400" />
               </div>
 
-              {/* Item 7: Log out */}
+              {/* System Reset */}
+              <div
+                onClick={handleSystemReset}
+                className="bg-white rounded-2xl p-4 border border-slate-100 shadow-2xs flex items-center justify-between hover:border-rose-200 transition-all cursor-pointer group"
+              >
+                <div className="flex items-center gap-3.5">
+                  <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+                    <RefreshCcw className="w-5 h-5 stroke-[2]" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-rose-600">Full System Reset</div>
+                    <div className="text-[10px] text-rose-400 font-medium">Clear all data and start with 5M ETB</div>
+                  </div>
+                </div>
+                <X className="w-4 h-4 text-rose-300" />
+              </div>
+
+              {/* Log out */}
               <div
                 onClick={onLogout}
                 className="bg-white rounded-2xl p-4 border border-slate-100 shadow-2xs flex items-center justify-between hover:border-rose-200 transition-all cursor-pointer group"
               >
                 <div className="flex items-center gap-3.5">
-                  <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
                     <LogOut className="w-5 h-5 stroke-[2]" />
                   </div>
-                  <span className="text-xs font-bold text-rose-600">
+                  <span className="text-xs font-bold text-slate-600">
                     Log out
                   </span>
                 </div>
-                <ChevronRight className="w-4 h-4 text-rose-400" />
+                <ChevronRight className="w-4 h-4 text-slate-400" />
               </div>
             </div>
           </div>
 
-          {/* Footer Version Info matching image.png */}
+          {/* Version Info */}
           <div className="pt-6 pb-4 text-center space-y-1 text-slate-500">
-            <div className="text-[11px] font-semibold text-slate-400">
-              Version: 1.0
-            </div>
+            <div className="text-[11px] font-semibold text-slate-400">Version: 1.0</div>
             <div className="text-[11px] font-bold flex items-center justify-center gap-2">
-              <span className="text-purple-800 underline hover:text-purple-900 cursor-pointer">
-                Privacy policy
-              </span>
+              <span className="text-purple-800 underline">Privacy policy</span>
               <span className="text-slate-300">|</span>
-              <span className="text-purple-800 underline hover:text-purple-900 cursor-pointer">
-                Terms and Conditions
-              </span>
+              <span className="text-purple-800 underline">Terms and Conditions</span>
             </div>
           </div>
-
         </div>
 
       </div>
 
-      {/* Change PIN Modal Popup */}
+      {/* Change PIN Modal */}
       {activeSubScreen === 'change_pin' && (
         <div className="fixed inset-0 z-60 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
           <div className="bg-white w-full max-w-sm rounded-3xl p-5 space-y-4 shadow-2xl border border-slate-100 animate-in zoom-in-95">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <KeyRound className="w-5 h-5 text-[#74117c]" />
-                <h3 className="text-sm font-bold text-slate-800">
-                  Change / Reset App PIN
-                </h3>
+                <h3 className="text-sm font-bold text-slate-800">Change PIN</h3>
               </div>
-              <button
-                onClick={() => setActiveSubScreen(null)}
-                className="p-1 rounded-full text-slate-400 hover:bg-slate-100 cursor-pointer"
-              >
+              <button onClick={() => setActiveSubScreen(null)} className="p-1 rounded-full text-slate-400 hover:bg-slate-100">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {pinError && (
-              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-semibold flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
-                <span>{pinError}</span>
-              </div>
-            )}
-
-            {pinSuccess && (
-              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-700 font-semibold flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span>PIN updated successfully! Your new PIN is active.</span>
-              </div>
-            )}
+            {pinError && <div className="p-3 bg-rose-50 text-rose-700 text-xs font-semibold rounded-xl">{pinError}</div>}
+            {pinSuccess && <div className="p-3 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-xl">PIN updated!</div>}
 
             <form onSubmit={handleChangePinSubmit} className="space-y-3">
               <div className="space-y-1">
@@ -405,39 +406,17 @@ export const CbeSettingsModal: React.FC<CbeSettingsModalProps> = ({
         </div>
       )}
 
-      {/* Biometrics Modal Popup */}
+      {/* Biometrics Modal */}
       {activeSubScreen === 'biometrics' && (
         <div className="fixed inset-0 z-60 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
-          <div className="bg-white w-full max-w-sm rounded-3xl p-5 space-y-4 shadow-2xl border border-slate-100 text-center animate-in zoom-in-95">
-            <div className="w-16 h-16 rounded-full bg-purple-50 text-[#74117c] flex items-center justify-center mx-auto">
-              <Fingerprint className="w-10 h-10" />
-            </div>
-
-            <div>
-              <h3 className="text-sm font-bold text-slate-800">Biometric Login</h3>
-              <p className="text-xs text-slate-500 mt-1">Use Fingerprint or Face ID for fast login to CBE Mobile App.</p>
-            </div>
-
-            <button
-              onClick={() => {
-                setBiometricsEnabled(!biometricsEnabled);
-                alert(biometricsEnabled ? 'Biometrics disabled' : 'Biometrics enabled successfully!');
-                setActiveSubScreen(null);
-              }}
-              className={`w-full py-3 rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer ${
-                biometricsEnabled ? 'bg-rose-600 text-white hover:bg-rose-700' : 'bg-[#74117c] text-white'
-              }`}
-            >
-              {biometricsEnabled ? 'Disable Biometric Login' : 'Enable Fingerprint / Face ID'}
-            </button>
-
-            <button onClick={() => setActiveSubScreen(null)} className="text-xs text-slate-400 font-semibold cursor-pointer">
-              Cancel
-            </button>
+          <div className="bg-white w-full max-w-sm rounded-3xl p-5 space-y-4 shadow-2xl text-center">
+            <Fingerprint className="w-12 h-12 text-[#74117c] mx-auto" />
+            <h3 className="text-sm font-bold text-slate-800">Biometric Login</h3>
+            <button onClick={() => setActiveSubScreen(null)} className="w-full py-3 bg-[#74117c] text-white rounded-xl text-xs font-bold">Enable Fingerprint</button>
+            <button onClick={() => setActiveSubScreen(null)} className="text-xs text-slate-400">Cancel</button>
           </div>
         </div>
       )}
-
     </div>
   );
 };

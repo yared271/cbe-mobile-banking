@@ -31,11 +31,15 @@ export const CbeMyInformationScreen: React.FC<CbeMyInformationScreenProps> = ({
   const [activeQrTab, setActiveQrTab] = useState<'account' | 'phone'>('account');
   const [cbeNoor, setCbeNoor] = useState(false);
 
-  const formattedAccount = userProfile.accountNumber || '1000348294902';
-  const maskedAccount = '1*********4902';
+  const formattedAccount = userProfile.accountNumber;
+  const maskedAccount = formattedAccount.length > 4 
+    ? `${formattedAccount[0]}*********${formattedAccount.slice(-4)}` 
+    : formattedAccount;
 
-  const formattedPhone = userProfile.phone || '0911824902';
-  const maskedPhone = '09****4902';
+  const formattedPhone = userProfile.phone;
+  const maskedPhone = formattedPhone.length > 4 
+    ? `${formattedPhone.slice(0, 2)}****${formattedPhone.slice(-4)}` 
+    : formattedPhone;
 
   return (
     <div className="w-full h-full max-h-screen bg-[#f8f9fa] text-slate-800 flex flex-col justify-between max-w-md mx-auto relative shadow-2xl overflow-hidden font-sans">
@@ -74,10 +78,10 @@ export const CbeMyInformationScreen: React.FC<CbeMyInformationScreenProps> = ({
 
           <div>
             <h2 className="text-base font-bold text-slate-800">
-              {userProfile.fullName || 'Yared Nigusse Teshome'}
+              {userProfile.fullName}
             </h2>
             <p className="text-[11px] text-slate-400 font-medium mt-0.5">
-              Last Sign In: Jun 14, 2026 - 09:25 AM
+              Last Sign In: {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
             </p>
           </div>
         </div>
@@ -182,7 +186,7 @@ export const CbeMyInformationScreen: React.FC<CbeMyInformationScreenProps> = ({
                 {activeQrTab === 'account' ? maskedAccount : maskedPhone}
               </div>
               <div className="text-xs font-bold text-slate-600">
-                {userProfile.fullName || 'Yared Nigusse Teshome'}
+                {userProfile.fullName}
               </div>
               <div className="text-[11px] text-slate-400 font-medium pt-1">
                 Scan this QR code to transfer directly

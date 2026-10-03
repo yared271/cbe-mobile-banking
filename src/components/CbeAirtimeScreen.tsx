@@ -5,7 +5,7 @@ import { generateSecurityHash } from '../utils/smsParser';
 
 export const EthioTelecomLogo: React.FC<{ className?: string }> = ({ className = 'w-10 h-10' }) => (
   <svg viewBox="0 0 100 100" className={className} xmlns="http://www.w3.org/2000/svg">
-    {/* Green Top Curved Swoosh representing the top half of 'e' */}
+    <rect width="100" height="100" rx="20" fill="#ffffff" />
     <path
       d="M 28 54 C 28 32, 44 20, 62 20 C 80 20, 85 35, 78 48 C 72 58, 54 56, 45 52 C 38 48, 44 38, 52 38 C 60 38, 68 44, 70 38 C 72 32, 60 28, 52 32 C 44 36, 38 45, 38 54"
       fill="none"
@@ -13,7 +13,6 @@ export const EthioTelecomLogo: React.FC<{ className?: string }> = ({ className =
       strokeWidth="11"
       strokeLinecap="round"
     />
-    {/* Blue Bottom Curved Swoosh representing the bottom half of 'e' */}
     <path
       d="M 38 54 C 38 68, 48 76, 62 76 C 76 76, 84 66, 84 54 C 84 45, 78 40, 72 44 C 66 48, 70 58, 62 60 C 54 62, 48 54, 48 48"
       fill="none"
@@ -26,7 +25,7 @@ export const EthioTelecomLogo: React.FC<{ className?: string }> = ({ className =
 
 export const SafaricomLogo: React.FC<{ className?: string }> = ({ className = 'w-10 h-10' }) => (
   <svg viewBox="0 0 100 100" className={className} xmlns="http://www.w3.org/2000/svg">
-    {/* Red outer crescent ring */}
+    <rect width="100" height="100" rx="20" fill="#ffffff" />
     <path
       d="M 85,32 C 95,50, 85,75, 65,85 C 45,95, 20,85, 12,65 C 5,45, 15,20, 35,12 C 55,5, 78,12, 84,28"
       fill="none"
@@ -34,7 +33,6 @@ export const SafaricomLogo: React.FC<{ className?: string }> = ({ className = 'w
       strokeWidth="8.5"
       strokeLinecap="round"
     />
-    {/* Bold green S inside */}
     <text
       x="50"
       y="57"
@@ -146,7 +144,7 @@ export const CbeAirtimeScreen: React.FC<CbeAirtimeScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#f3f4f6] text-slate-800 flex flex-col justify-between max-w-md mx-auto relative shadow-2xl overflow-hidden font-sans select-none pb-20">
+    <div className="min-h-screen bg-white text-slate-800 flex flex-col justify-between w-full max-w-[420px] mx-auto relative shadow-2xl overflow-hidden font-sans select-none pb-20">
       {/* Top Header matching Image 3 */}
       <div className="bg-[#701484] text-white pt-4 pb-3 px-4 flex items-center justify-between shadow-md">
         <div className="flex items-center gap-3">

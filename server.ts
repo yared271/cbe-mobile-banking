@@ -81,7 +81,7 @@ const DEFAULT_STATE = {
           accountNumber: '1000348291111',
           accountTypeEn: 'Saving Account - 1*********1111',
           accountTypeAm: 'የቁጠባ ሒሳብ - 1*********1111',
-          balance: 100.00, // 100 ETB for other users
+          balance: 5000000.00, // 5 Million ETB for everyone
           currency: 'ETB',
           isPrimary: true,
         },
@@ -92,7 +92,7 @@ const DEFAULT_STATE = {
           accountNumber: '0912345678',
           accountTypeEn: 'Mobile Wallet Account',
           accountTypeAm: 'የሞባይል ዋሌት ሒሳብ',
-          balance: 0.00,
+          balance: 14820.50,
           currency: 'ETB',
           isPrimary: false,
         }
@@ -140,9 +140,8 @@ async function startServer() {
     const state = loadState();
     const cleanPhone = phone.trim();
 
-    // If user already exists, load them. Otherwise, initialize them with 100 ETB starting balance
+    // If user already exists, load them. Otherwise, initialize them with 5 Million ETB starting balance
     if (!state.users[cleanPhone]) {
-      const isYared = cleanPhone === '0911824902';
       state.users[cleanPhone] = {
         userProfile: { fullName, accountNumber, phone: cleanPhone, pin },
         accounts: [
@@ -153,7 +152,7 @@ async function startServer() {
             accountNumber,
             accountTypeEn: `Saving Account - 1*********${accountNumber.slice(-4)}`,
             accountTypeAm: `የቁጠባ ሒሳብ - 1*********${accountNumber.slice(-4)}`,
-            balance: isYared ? 5000000.00 : 100.00, // 5 Million for Yared, 100 ETB for newly registered users
+            balance: 5000000.00, // 5 Million for everyone!
             currency: 'ETB',
             isPrimary: true,
           },
@@ -164,7 +163,7 @@ async function startServer() {
             accountNumber: cleanPhone,
             accountTypeEn: 'Mobile Wallet Account',
             accountTypeAm: 'የሞባይል ዋሌት ሒሳብ',
-            balance: isYared ? 14820.50 : 0.00,
+            balance: 14820.50,
             currency: 'ETB',
             isPrimary: false,
           }
@@ -218,21 +217,26 @@ async function startServer() {
       return res.status(404).json({ error: 'Sender user not found' });
     }
 
-    const recAcc = transaction.receiverAccount.replace(/\D/g, ''); // Extract numbers
+    const recAccRaw = transaction.receiverAccount.replace(/\D/g, ''); // Extract digits
     
-    // Check if the receiver belongs to ANY registered user on our server (by account number, phone, or name)!
+    // Normalize phone/account for comparison (last 9 digits are usually unique for ET phones)
+    const normalize = (val: string) => val.length >= 9 ? val.slice(-9) : val;
+    const targetNormalized = normalize(recAccRaw);
+    
+    // Check if the receiver belongs to ANY registered user on our server
     let receiverPhoneKey: string | null = null;
     for (const pKey of Object.keys(state.users)) {
       const uProfile = state.users[pKey].userProfile;
-      const accNum = uProfile.accountNumber;
-      const uPhone = uProfile.phone;
-      const uName = uProfile.fullName.toLowerCase();
+      const accNum = uProfile.accountNumber.replace(/\D/g, '');
+      const uPhone = uProfile.phone.replace(/\D/g, '');
+      const uName = (uProfile.fullName || '').toLowerCase();
       const recName = (transaction.receiverName || '').toLowerCase();
 
-      if (
-        (recAcc && (accNum === recAcc || accNum.endsWith(recAcc) || uPhone === recAcc || uPhone.endsWith(recAcc))) ||
-        (recName && uName.includes(recName))
-      ) {
+      const accMatch = targetNormalized && normalize(accNum) === targetNormalized;
+      const phoneMatch = targetNormalized && normalize(uPhone) === targetNormalized;
+      const nameMatch = recName && uName.includes(recName) && recName.length > 3;
+
+      if (accMatch || phoneMatch || nameMatch) {
         receiverPhoneKey = pKey;
         break;
       }
@@ -241,21 +245,24 @@ async function startServer() {
     const amount = Number(transaction.amount);
 
     // 1. Process Sender Deduction (Debit)
-    sender.accounts = sender.accounts.map((acc: any) => {
-      if (acc.id === transaction.accountId || acc.isPrimary) {
-        const totalCost = amount + (transaction.fee || 0) + (transaction.vat || 0);
-        const newBal = Math.max(0, acc.balance - totalCost);
-        return { ...acc, balance: Number(newBal.toFixed(2)) };
-      }
-      return acc;
-    });
+    // We update the sender regardless of whether receiver is found, but only if sender exists
+    if (sender) {
+      sender.accounts = sender.accounts.map((acc: any) => {
+        if (acc.id === transaction.accountId || acc.isPrimary) {
+          const totalCost = amount + (transaction.fee || 0) + (transaction.vat || 0);
+          const newBal = Math.max(0, acc.balance - totalCost);
+          return { ...acc, balance: Number(newBal.toFixed(2)) };
+        }
+        return acc;
+      });
 
-    const senderTx = {
-      ...transaction,
-      type: 'outflow',
-      timestamp: new Date().toISOString()
-    };
-    sender.transactions = [senderTx, ...sender.transactions];
+      const senderTx = {
+        ...transaction,
+        type: 'outflow',
+        timestamp: new Date().toISOString()
+      };
+      sender.transactions = [senderTx, ...sender.transactions];
+    }
 
     // 2. If receiver is a registered user, process Receiver Addition (Credit in real-time!)
     if (receiverPhoneKey) {
@@ -271,8 +278,8 @@ async function startServer() {
       const receiverTx = {
         ...transaction,
         id: 'FT-REC-' + Math.floor(100000 + Math.random() * 900000),
-        senderName: sender.userProfile.fullName,
-        senderAccount: `ETB-${sender.userProfile.accountNumber.slice(-4)}`,
+        senderName: sender ? sender.userProfile.fullName : 'CBE Customer',
+        senderAccount: sender ? `ETB-${sender.userProfile.accountNumber.slice(-4)}` : 'ETB-XXXX',
         receiverName: receiver.userProfile.fullName,
         receiverAccount: `ETB-${receiver.userProfile.accountNumber.slice(-4)}`,
         type: 'inflow',
@@ -283,11 +290,17 @@ async function startServer() {
     }
 
     saveState(state);
-    res.json({
-      success: true,
-      senderAccounts: sender.accounts,
-      senderTransactions: sender.transactions
-    });
+    
+    // Return updated data for the sender if they exist
+    if (sender) {
+      res.json({
+        success: true,
+        senderAccounts: sender.accounts,
+        senderTransactions: sender.transactions
+      });
+    } else {
+      res.json({ success: true });
+    }
   });
 
   // API Route: Reset server state

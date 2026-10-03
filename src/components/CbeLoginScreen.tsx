@@ -28,6 +28,7 @@ interface CbeLoginScreenProps {
   userName?: string;
   registeredPin?: string;
   logoUrl?: string;
+  onOpenLogoModal?: () => void;
 }
 
 export const CbeLoginScreen: React.FC<CbeLoginScreenProps> = ({
@@ -39,6 +40,7 @@ export const CbeLoginScreen: React.FC<CbeLoginScreenProps> = ({
   onGoToRegister,
   registeredPin,
   logoUrl,
+  onOpenLogoModal,
 }) => {
   const [loginPhone, setLoginPhone] = useState(() => {
     return localStorage.getItem('cbe_active_user_phone') || '0911824902';
@@ -119,7 +121,7 @@ export const CbeLoginScreen: React.FC<CbeLoginScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#fafbfc] text-slate-800 flex flex-col justify-between w-full max-w-full mx-auto relative shadow-2xl overflow-hidden font-sans select-none px-6 py-5">
+    <div className="min-h-screen bg-white text-slate-800 flex flex-col justify-between w-full max-w-[420px] mx-auto relative shadow-2xl overflow-hidden font-sans select-none px-6 py-5">
       {/* 1. Top Bar: Bell (Left), English Dropdown (Center), Grid (Right) */}
       <div className="flex items-center justify-between pt-1">
         {/* Left: Notification Bell Button */}
@@ -150,26 +152,29 @@ export const CbeLoginScreen: React.FC<CbeLoginScreenProps> = ({
 
       {/* 2. Main Center Hero Area (100% Pure White Background, Seamless Logo) */}
       <div className="flex flex-col items-center text-center my-auto py-2 space-y-4">
-        {/* CBE Official Logo */}
-        <div className="w-24 h-24 flex items-center justify-center bg-transparent">
+        {/* CBE Official Logo - Clickable to change login screen logo ONLY */}
+        <div 
+          onClick={onOpenLogoModal}
+          className="w-24 h-24 flex items-center justify-center bg-transparent cursor-pointer hover:scale-105 transition-transform"
+        >
           <CbeLogo customUrl={logoUrl} isDarkBg={false} size="xl" className="w-24 h-24 object-contain bg-transparent" />
         </div>
 
-        {/* Gold CBE Brand Typography */}
+        {/* Brand Typography - Exactly matching screenshot order */}
         <div className="space-y-1">
-          <h1 className="text-base sm:text-lg font-bold text-[#b58b38] font-serif tracking-wide leading-tight">
-            {currentLang === 'am' ? 'የኢትዮጵያ ንግድ ባንክ' : 'Commercial Bank of Ethiopia'}
+          <h1 className="text-[19px] font-bold text-[#b58b38] font-serif tracking-wide leading-tight">
+            የኢትዮጵያ ንግድ ባንክ
           </h1>
-          <h2 className="text-[11px] sm:text-xs font-bold text-[#b58b38] tracking-wider uppercase font-sans">
+          <h2 className="text-[11px] font-bold text-[#b58b38] tracking-wider uppercase font-sans">
             COMMERCIAL BANK OF ETHIOPIA
           </h2>
 
           {/* Thin subtle horizontal divider line */}
           <div className="w-20 h-px bg-slate-200 mx-auto my-3" />
 
-          {/* Welcome back text */}
-          <p className="text-xs sm:text-[13px] text-slate-500 font-normal">
-            {currentLang === 'am' ? 'እንኳን ደህና መጡ' : 'Welcome'}
+          {/* Welcome back text as per screenshot */}
+          <p className="text-[13px] text-slate-500 font-normal">
+            {currentLang === 'am' ? 'እንኳን ደህና መጡ' : 'Welcome back'}
           </p>
         </div>
 
@@ -257,6 +262,17 @@ export const CbeLoginScreen: React.FC<CbeLoginScreenProps> = ({
                 </>
               )}
             </button>
+
+            {/* Registration Link for New Users */}
+            <div className="pt-2 text-center">
+              <button
+                type="button"
+                onClick={onGoToRegister}
+                className="text-xs font-semibold text-[#701484] hover:underline cursor-pointer py-1"
+              >
+                {currentLang === 'am' ? 'አዲስ አካውንት ለመክፈት እዚህ ይጫኑ' : 'Don\'t have an account? Register here'}
+              </button>
+            </div>
           </form>
         </div>
       </div>

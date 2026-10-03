@@ -228,7 +228,7 @@ export const CbeScanQrModal: React.FC<CbeScanQrModalProps> = ({
         setVerificationResult({
           status: 'verified',
           account: accountNum,
-          name: 'Mikyas Kassa Birhanu',
+          name: 'CBE Account Holder',
           bank: 'Commercial Bank of Ethiopia',
         });
         return;
@@ -263,7 +263,7 @@ export const CbeScanQrModal: React.FC<CbeScanQrModalProps> = ({
       setVerificationResult({
         status: 'verified',
         account: '1000392817264',
-        name: 'Mikyas Kassa Birhanu',
+        name: 'Verified Beneficiary',
         bank: 'Commercial Bank of Ethiopia',
       });
     }, 1200);
