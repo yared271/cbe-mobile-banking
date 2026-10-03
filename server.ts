@@ -327,6 +327,9 @@ async function startServer() {
     res.json({ success: true, state: DEFAULT_STATE });
   });
 
+  // Serve static assets from public directory
+  app.use(express.static(path.join(__dirname, 'public')));
+
   const isProd = process.env.NODE_ENV === 'production';
   
   if (!isProd) {

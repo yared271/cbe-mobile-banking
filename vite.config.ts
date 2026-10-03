@@ -11,39 +11,46 @@ export default defineConfig(() => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['cbe_logo.jpg'],
+        includeAssets: [
+          'favicon.png',
+          'apple-touch-icon.png',
+          'pwa-192x192.png',
+          'pwa-512x512.png',
+          'pwa-maskable-512x512.png',
+          'cbe_logo.png'
+        ],
         workbox: {
-          globPatterns: ['**/*.{js,css,html,ico,png,jpg,jpeg}'],
-          // Ensure icons and logos are always served from network, not cache
+          globPatterns: ['**/*.{js,css,html,ico,png,jpg,jpeg,svg,woff,woff2}'],
           navigateFallbackDenylist: [/^\/api/],
         },
         manifest: {
           id: '/',
           name: 'CBE Mobile Banking',
           short_name: 'CBE Mobile',
-          description: 'Commercial Bank of Ethiopia - Mobile Banking App',
+          description: 'Commercial Bank of Ethiopia - Official Mobile Banking App',
           theme_color: '#701484',
           background_color: '#701484',
           display: 'standalone',
+          orientation: 'portrait',
           start_url: '/',
           scope: '/',
           icons: [
             {
-              src: '/cbe_logo.jpg',
+              src: '/pwa-192x192.png',
               sizes: '192x192',
-              type: 'image/jpeg',
+              type: 'image/png',
               purpose: 'any',
             },
             {
-              src: '/cbe_logo.jpg',
+              src: '/pwa-512x512.png',
               sizes: '512x512',
-              type: 'image/jpeg',
+              type: 'image/png',
               purpose: 'any',
             },
             {
-              src: '/cbe_logo.jpg',
+              src: '/pwa-maskable-512x512.png',
               sizes: '512x512',
-              type: 'image/jpeg',
+              type: 'image/png',
               purpose: 'maskable',
             },
           ],
