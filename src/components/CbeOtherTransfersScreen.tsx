@@ -101,7 +101,7 @@ export const CbeOtherTransfersScreen: React.FC<CbeOtherTransfersScreenProps> = (
       id: 'wallet',
       title: 'Wallet',
       subtitle: 'Wallet',
-      icon: <Wallet className="w-6 h-6 text-[#701484]" />,
+      icon: <img src="/ethio_telecom.svg" className="w-7 h-7 object-contain" alt="Wallet" />,
     },
     {
       id: 'other_bank',

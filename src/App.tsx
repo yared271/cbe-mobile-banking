@@ -49,7 +49,7 @@ export default function App() {
     pin: string;
   }>({
     fullName: 'Yared Nigusse Teshome',
-    accountNumber: '1000348298657',
+    accountNumber: '1000475184173',
     phone: '0911824902',
     pin: '1234',
   });
@@ -59,9 +59,9 @@ export default function App() {
       id: 'cbe-primary',
       nameEn: 'CBE Saving Account',
       nameAm: 'የኢትዮጵያ ንግድ ባንክ የቁጠባ ሒሳብ',
-      accountNumber: '1000348298657',
-      accountTypeEn: 'Saving Account - 1*********8657',
-      accountTypeAm: 'የቁጠባ ሒሳብ - 1*********8657',
+      accountNumber: '1000475184173',
+      accountTypeEn: 'Saving Account - 1*********4173',
+      accountTypeAm: 'የቁጠባ ሒሳብ - 1*********4173',
       balance: 5000000.00, // 5 Million ETB for Yared
       currency: 'ETB',
       isPrimary: true,

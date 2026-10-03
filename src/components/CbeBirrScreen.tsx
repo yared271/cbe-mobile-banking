@@ -134,11 +134,8 @@ export const CbeBirrScreen: React.FC<CbeBirrScreenProps> = ({
               >
                 <div className="flex items-center gap-4">
                   {/* Styled CBEBirr Wallet Brand Icon */}
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-[#701484] p-0.5 shadow-xs flex items-center justify-center shrink-0">
-                    <div className="w-full h-full bg-white rounded-[14px] flex flex-col items-center justify-center">
-                      <span className="text-[7.5px] font-extrabold text-[#701484] tracking-tight leading-none">CBE</span>
-                      <span className="text-[9px] font-extrabold text-amber-500 tracking-tight leading-none font-serif">Birr</span>
-                    </div>
+                  <div className="w-12 h-12 rounded-2xl bg-[#701484]/5 p-2 shadow-xs flex items-center justify-center shrink-0">
+                    <img src="/cbe_birr.svg" className="w-full h-full object-contain" alt="CBE Birr" />
                   </div>
                   
                   <div>

@@ -10,14 +10,10 @@ import {
   ArrowRight,
   ShieldCheck,
   CheckCircle2,
-  AlertCircle,
-  Pencil,
-  Camera,
-  Upload
+  AlertCircle
 } from 'lucide-react';
 import { CbeAccount, Language, Transaction } from '../types/banking';
 import { formatCurrency, generateSecurityHash } from '../utils/smsParser';
-import { EthioTelecomLogo, SafaricomLogo } from './CbeAirtimeScreen';
 
 // Fallback Logos for the 8 Billers with higher fidelity SVGs
 export const EeuLogo: React.FC<{ className?: string }> = ({ className = 'w-10 h-10' }) => (
@@ -137,7 +133,7 @@ export const CbeBillsScreen: React.FC<CbeBillsScreenProps> = ({
       id: 'safaricom_deposit',
       name: 'Safaricom Deposit',
       nameAm: 'የሳፋሪኮም ዲፖዚት',
-      logoComponent: <SafaricomLogo className="w-12 h-12" />,
+      logoComponent: <img src="/safaricom.svg" className="w-12 h-12 object-contain rounded-lg" alt="Safaricom" />,
       color: 'bg-red-50',
       label: 'Safaricom Mobile No',
       defaultAmount: '1000.00'
@@ -146,7 +142,7 @@ export const CbeBillsScreen: React.FC<CbeBillsScreenProps> = ({
       id: 'safaricom_bill',
       name: 'Safaricom Bill Payment',
       nameAm: 'የሳፋሪኮም ቢል ክፍያ',
-      logoComponent: <SafaricomLogo className="w-12 h-12" />,
+      logoComponent: <img src="/safaricom.svg" className="w-12 h-12 object-contain rounded-lg" alt="Safaricom" />,
       color: 'bg-red-50',
       label: 'Safaricom Account No',
       defaultAmount: '450.00'
@@ -155,7 +151,7 @@ export const CbeBillsScreen: React.FC<CbeBillsScreenProps> = ({
       id: 'ethio_postpaid',
       name: 'Ethio Telecom Postpaid',
       nameAm: 'የኢትዮ ቴሌኮም የድህረ ክፍያ',
-      logoComponent: <EthioTelecomLogo className="w-12 h-12" />,
+      logoComponent: <img src="/ethio_telecom.svg" className="w-14 h-14 object-contain" alt="Ethio" />,
       color: 'bg-blue-50',
       label: 'Service Number / Phone No',
       defaultAmount: '600.00'

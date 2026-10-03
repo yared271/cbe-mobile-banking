@@ -282,8 +282,13 @@ export const CbeHomeScreen: React.FC<CbeHomeScreenProps> = ({
               <div className="text-[10.5px] text-purple-200 font-medium leading-none mb-1">
                 {currentLang === 'am' ? 'ሰላም,' : 'Hello,'}
               </div>
-              <div className="text-base font-extrabold text-white leading-tight">
-                {userName.split(' ')[0]}
+              <div className="flex items-center gap-2">
+                <div className="text-base font-extrabold text-white leading-tight">
+                  {userName.split(' ')[0]}
+                </div>
+                <div className="w-5 h-5 bg-white/10 rounded-full flex items-center justify-center p-0.5 border border-white/20">
+                  <img src="/cbe_logo.png" className="w-full h-full object-contain" alt="CBE" />
+                </div>
               </div>
             </div>
           </div>
@@ -596,7 +601,7 @@ export const CbeHomeScreen: React.FC<CbeHomeScreenProps> = ({
               onClick={onOpenCbeBirr}
               className="p-3.5 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-slate-100 hover:border-[#701484]/40 flex flex-col items-center justify-center gap-1.5 text-center transition-all hover:shadow-md cursor-pointer h-22 group"
             >
-              <Wallet className="w-6 h-6 stroke-[2.2] text-[#701484] group-hover:scale-110 transition-transform" />
+              <img src="/cbe_birr.svg" className="w-8 h-8 object-contain group-hover:scale-110 transition-transform" alt="CBE Birr" />
               <div className="text-xs font-bold text-[#701484]">
                 {currentLang === 'am' ? 'ንግድ ባንክ ብር' : 'CBEBirr'}
               </div>
@@ -786,8 +791,20 @@ export const CbeHomeScreen: React.FC<CbeHomeScreenProps> = ({
                       className="w-full bg-[#f8f9fa] hover:bg-slate-100 p-4 rounded-[22px] border border-slate-100 flex items-center justify-between transition-all cursor-pointer active:scale-[0.99] group shadow-2xs"
                     >
                       <div className="flex items-center gap-3">
-                        {/* Down arrow for inflow (green), Up arrow for outflow (red) */}
-                        {isInflow ? (
+                        {/* Transaction Icon / Logo */}
+                        {tx.category === 'Airtime Topup' && tx.receiverBank?.toLowerCase().includes('ethio') ? (
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-white border border-slate-100 p-1.5 shadow-xs">
+                            <img src="/ethio_telecom.svg" className="w-full h-full object-contain" alt="Ethio" />
+                          </div>
+                        ) : tx.category === 'Airtime Topup' && tx.receiverBank?.toLowerCase().includes('safari') ? (
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-white border border-slate-100 p-1.5 shadow-xs">
+                            <img src="/safaricom.svg" className="w-full h-full object-contain rounded-full" alt="Safaricom" />
+                          </div>
+                        ) : tx.category === 'Telebirr Transfer' || tx.transferMode === 'cbe_birr' ? (
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-white border border-slate-100 p-1.5 shadow-xs">
+                            <img src="/cbe_birr.svg" className="w-full h-full object-contain" alt="CBE Birr" />
+                          </div>
+                        ) : isInflow ? (
                           <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-emerald-50 text-emerald-500" title="Credit / Deposit">
                             <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                               <line x1="12" y1="5" x2="12" y2="19"></line>

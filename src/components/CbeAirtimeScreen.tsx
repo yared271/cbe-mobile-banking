@@ -177,12 +177,8 @@ export const CbeAirtimeScreen: React.FC<CbeAirtimeScreenProps> = ({
                 : 'border-slate-200 hover:border-slate-300'
             }`}
           >
-            {customEthioLogo ? (
-              <img src={customEthioLogo} className="w-12 h-12 mb-3 object-contain rounded-lg" alt="Ethio Custom" />
-            ) : (
-              <EthioTelecomLogo className="w-12 h-12 mb-3" />
-            )}
-            <span className="text-xs font-bold text-slate-800 leading-snug">
+            <img src="/ethio_telecom.svg" className="w-14 h-14 mb-2 object-contain" alt="Ethio Telecom" />
+            <span className="text-[11px] font-bold text-slate-800 leading-snug">
               Ethio telecom Topup
             </span>
           </button>
@@ -196,12 +192,8 @@ export const CbeAirtimeScreen: React.FC<CbeAirtimeScreenProps> = ({
                 : 'border-slate-200 hover:border-slate-300'
             }`}
           >
-            {customSafLogo ? (
-              <img src={customSafLogo} className="w-12 h-12 mb-3 object-contain rounded-lg" alt="Safaricom Custom" />
-            ) : (
-              <SafaricomLogo className="w-12 h-12 mb-3" />
-            )}
-            <span className="text-xs font-bold text-slate-800 leading-snug">
+            <img src="/safaricom.svg" className="w-12 h-12 mb-2 object-contain rounded-lg shadow-sm" alt="Safaricom" />
+            <span className="text-[11px] font-bold text-slate-800 leading-snug">
               Safaricom Topup
             </span>
           </button>

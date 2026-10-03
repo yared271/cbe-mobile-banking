@@ -16,14 +16,11 @@ export const CbeRegisterScreen: React.FC<CbeRegisterScreenProps> = ({
   onRegisterSuccess,
   onGoToLogin,
 }) => {
-  const [fullName, setFullName] = useState('');
-  const [accountNumber, setAccountNumber] = useState(() => {
-    // Generate an authentic 13-digit CBE account number
-    return '1000' + Math.floor(100000000 + Math.random() * 900000000).toString();
-  });
-  const [phone, setPhone] = useState('');
-  const [pin, setPin] = useState('');
-  const [confirmPin, setConfirmPin] = useState('');
+  const [fullName, setFullName] = useState('Yared Nigusse Teshome');
+  const [accountNumber, setAccountNumber] = useState('1000475184173');
+  const [phone, setPhone] = useState('0911824902');
+  const [pin, setPin] = useState('1234');
+  const [confirmPin, setConfirmPin] = useState('1234');
   const [error, setError] = useState('');
 
   const handleRegister = (e: React.FormEvent) => {
